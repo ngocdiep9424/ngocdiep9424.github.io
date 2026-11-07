@@ -401,6 +401,7 @@ details[open] > summary { margin-bottom: 8px; }
           <fieldset class="days"><legend>Học vào các thứ</legend><div class="filters">
             <label class="check"><input type="checkbox" name="cDays" value="1">T2</label><label class="check"><input type="checkbox" name="cDays" value="2">T3</label><label class="check"><input type="checkbox" name="cDays" value="3">T4</label><label class="check"><input type="checkbox" name="cDays" value="4">T5</label><label class="check"><input type="checkbox" name="cDays" value="5">T6</label><label class="check"><input type="checkbox" name="cDays" value="6">T7</label><label class="check"><input type="checkbox" name="cDays" value="0">CN</label>
           </div></fieldset>
+          <label for="cTimes">Giờ riêng theo thứ (nếu có ngày học giờ khác)<input id="cTimes" type="text" placeholder="VD: T7 17:00-18:00, CN 17:00-18:00"></label>
           <div class="two">
             <label for="cBase">Buổi tới là buổi số<input id="cBase" type="number" min="1" max="200" placeholder="Bỏ trống nếu không theo khóa"></label>
             <label for="cTotal">Tổng số buổi của khóa<input id="cTotal" type="number" min="1" max="200" value="24"></label>
@@ -522,7 +523,7 @@ details[open] > summary { margin-bottom: 8px; }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 21.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 22.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -647,6 +648,8 @@ function activeLessons(rows) {
 }
 
 function classDays(c) { return Array.isArray(c.weekdays) && c.weekdays.length ? c.weekdays.map(Number) : [Number(c.weekday)]; }
+/* Giờ học theo từng thứ: lớp có thể có giờ riêng cho một số ngày (c.times = { "6": ["17:00","18:00"] }). */
+function classTime(c, day) { var t = c.times && c.times[String(toDate(day).getDay())]; return t && t[0] ? t : [c.start, c.end]; }
 function occurs(c, d) { return classDays(c).indexOf(d.getDay()) >= 0 && (c.skips || []).indexOf(ymd(d)) < 0; }
 /* Số thứ tự buổi: đếm các buổi không bị hủy tính từ mốc Vicky nhập. */
 function sessionAt(c, day) {
@@ -712,7 +715,7 @@ function buildStudents(lessons, students, classes, now) {
     Object.keys(map).forEach(function (k) {
       var h = map[k];
       if (!(c.studentId === h.id || (h.classIds || []).indexOf(c.id) >= 0)) return;
-      if (n) { var st = toDate(n.day + "T" + c.start); if (!h.next || st < h.next.date) h.next = { date: st, lesson: c.name + (n.session ? " · buổi " + n.session : "") }; }
+      if (n) { var st = toDate(n.day + "T" + classTime(c, n.day)[0]); if (!h.next || st < h.next.date) h.next = { date: st, lesson: c.name + (n.session ? " · buổi " + n.session : "") }; }
       if (n && n.session > 1) h.done += n.session - 1;
     });
   });
@@ -728,7 +731,7 @@ function buildItems(lessons, classes, today) {
       var d = addDays(today, i);
       if (classDays(c).indexOf(d.getDay()) < 0) continue;
       var day = ymd(d);
-      out.push({ key: "c" + c.id + day, src: "own", ref: c.id, day: day, start: toDate(day + "T" + c.start), end: toDate(day + "T" + c.end), title: c.name, level: c.level, place: c.place || "own", session: sessionAt(c, day), total: Number(c.total) || 0, plan: c.plan, planUrl: safeUrl(c.planUrl), cancelled: (c.skips || []).indexOf(day) >= 0, done: (c.doneDays || []).indexOf(day) >= 0, link: safeUrl(c.link), example: !!c.example });
+      out.push({ key: "c" + c.id + day, src: "own", ref: c.id, day: day, start: toDate(day + "T" + classTime(c, day)[0]), end: toDate(day + "T" + classTime(c, day)[1]), title: c.name, level: c.level, place: c.place || "own", session: sessionAt(c, day), total: Number(c.total) || 0, plan: c.plan, planUrl: safeUrl(c.planUrl), cancelled: (c.skips || []).indexOf(day) >= 0, done: (c.doneDays || []).indexOf(day) >= 0, link: safeUrl(c.link), example: !!c.example });
     }
   });
   return out.sort(function (a, b) { return a.start - b.start; });
@@ -1073,7 +1076,7 @@ function render() {
   var from = addDays(today, -7);
   fill("pastList", groupByDay(items.filter(function (i) { return i.end <= now && i.start >= from; }).reverse(), now), "Không có lớp nào.");
   $("classAdmin").innerHTML = state.classes.map(function (c) {
-    return '<div class="task" style="grid-template-columns:minmax(0,1fr);margin-top:8px"><div class="body"><div class="title">' + esc(c.name) + '</div><div class="meta"><span>' + classDays(c).map(function (d) { return WD_SHORT[d]; }).join(", ") + " " + esc(c.start) + "–" + esc(c.end) + "</span>" + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + '<button class="link" type="button" data-act="editClass" data-id="' + esc(c.id) + '">Sửa</button>' + delBtn("classes", c.id) + "</div></div></div>";
+    return '<div class="task" style="grid-template-columns:minmax(0,1fr);margin-top:8px"><div class="body"><div class="title">' + esc(c.name) + '</div><div class="meta"><span>' + classDays(c).map(function (d) { return WD_SHORT[d]; }).join(", ") + " " + esc(c.start) + "–" + esc(c.end) + (c.times ? Object.keys(c.times).map(function (d) { return "; " + WD_SHORT[d] + " " + esc(c.times[d][0]) + "–" + esc(c.times[d][1]); }).join("") : "") + "</span>" + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + '<button class="link" type="button" data-act="editClass" data-id="' + esc(c.id) + '">Sửa</button>' + delBtn("classes", c.id) + "</div></div></div>";
   }).join("");
 
   /* Ghi nhớ */
@@ -1092,7 +1095,7 @@ function render() {
 
   /* Hỏi tiến độ sau giờ học */
   $("markAlert").innerHTML = state.classes.filter(function (c) {
-    return c.trackMark && c.markDate !== todayStr && occurs(c, today) && toDate(todayStr + "T" + c.end) <= now;
+    return c.trackMark && c.markDate !== todayStr && occurs(c, today) && toDate(todayStr + "T" + classTime(c, todayStr)[1]) <= now;
   }).map(function (c) {
     return '<div class="ask"><strong>Lớp ' + esc(c.name) + ' hôm nay học đến đâu?</strong><div class="actions"><button class="btn" type="button" data-act="markNow" data-id="' + esc(c.id) + '">Đánh dấu tiến độ</button></div></div>';
   }).join("");
@@ -1367,6 +1370,13 @@ $("noteForm").addEventListener("submit", async function (e) {
     e.target.reset();
   } catch (x) { saveFail(); }
 });
+var WD_KEY = { CN: 0, T2: 1, T3: 2, T4: 3, T5: 4, T6: 5, T7: 6 };
+function parseTimes(txt) {
+  var out = {}, re = /(CN|T[2-7])\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/gi, m;
+  while ((m = re.exec(txt || ""))) { var pad2 = function (t) { return t.length === 4 ? "0" + t : t; }; out[String(WD_KEY[m[1].toUpperCase()])] = [pad2(m[2]), pad2(m[3])]; }
+  return Object.keys(out).length ? out : null;
+}
+function timesText(t) { return t ? Object.keys(t).map(function (d) { return WD_SHORT[d] + " " + t[d][0] + "-" + t[d][1]; }).join(", ") : ""; }
 function lessonPlan(n, per) { var out = []; for (var b = 1; b <= n; b++) for (var j = 1; j <= per; j++) out.push(per > 1 ? "Bài " + b + " · Buổi " + j : "Bài " + b); return out; }
 $("classForm").addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -1379,6 +1389,7 @@ $("classForm").addEventListener("submit", async function (e) {
   var per = Number($("cPer").value) || 0, nl = Number($("cLessons").value) || 0, nb = Number($("cNextB").value) || 0;
   if (per && nl && nb) base = (Math.min(nb, nl) - 1) * per + Math.min(Number($("cNextS").value) || 1, per);
   var body = { name: $("cName").value.trim(), weekdays: days, weekday: days[0], start: $("cStart").value, end: $("cEnd").value, link: $("cLink").value.trim(), place: $("cPlace").value, level: $("cLevel").value, studentId: $("cStudent").value, sessionBase: base, baseDate: base ? ymd(first) : "", total: base ? (Number($("cTotal").value) || 0) : 0 };
+  body.times = parseTimes($("cTimes").value);
   if (per && nl) Object.assign(body, { plan: lessonPlan(nl, per), total: nl * per, lessons: nl, perLesson: per, trackMark: true });
   else if (state.editClass) Object.assign(body, { lessons: 0, perLesson: 0 });
   try {
@@ -1443,7 +1454,7 @@ function fillReviewClasses() {
 function nextStartAfter(c, now) {
   var d0 = startOfDay(now);
   for (var i = 0; i < 60; i++) {
-    var d = addDays(d0, i), st = toDate(ymd(d) + "T" + c.start);
+    var d = addDays(d0, i), st = toDate(ymd(d) + "T" + classTime(c, ymd(d))[0]);
     if (occurs(c, d) && st > now) return { day: ymd(d), date: st };
   }
   return null;
@@ -1591,6 +1602,7 @@ function editClass(id) {
   var today = ymd(startOfDay(new Date())), n = nextOccurrence(c, today);
   $("cName").value = c.name || ""; $("cPlace").value = c.place || "own"; $("cLevel").value = c.level || ""; $("cStart").value = c.start; $("cEnd").value = c.end; $("cLink").value = c.link || ""; $("cStudent").value = c.studentId || "";
   $("cBase").value = n && n.session ? n.session : ""; $("cTotal").value = c.total || 24;
+  $("cTimes").value = timesText(c.times);
   var per = Number(c.perLesson) || 0;
   $("cPer").value = per ? String(per) : ""; $("cLessons").value = per ? (c.lessons || "") : "";
   $("cNextB").value = per && n && n.session ? Math.ceil(n.session / per) : ""; $("cNextS").value = per && n && n.session ? String((n.session - 1) % per + 1) : "1";
