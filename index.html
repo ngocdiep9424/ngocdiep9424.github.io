@@ -522,7 +522,7 @@ details[open] > summary { margin-bottom: 8px; }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 20.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 21.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -655,6 +655,15 @@ function sessionAt(c, day) {
   if (d >= base) { for (var x = base, i = 0; x <= d && i < 800; x = addDays(x, 1), i++) if (occurs(c, x)) n++; return c.sessionBase + n - 1; }
   for (var y = addDays(base, -1), j = 0; y >= d && j < 800; y = addDays(y, -1), j++) if (occurs(c, y)) n++;
   return c.sessionBase - n;
+}
+/* Tên buổi theo giáo án; bài kéo dài nhiều buổi liền nhau thì ghi thêm "Buổi j/k". */
+function planLabel(plan, n) {
+  var t = plan && plan[n - 1];
+  if (!t) return "";
+  var a = n - 1, b = n - 1;
+  while (a > 0 && plan[a - 1] === t) a--;
+  while (b < plan.length - 1 && plan[b + 1] === t) b++;
+  return b > a ? t + " · Buổi " + (n - a) + "/" + (b - a + 1) : t;
 }
 function milestone(n, total, plan) {
   var t = plan && plan[n - 1];
@@ -842,7 +851,7 @@ function weekSuggestions(items, tasks, monday, now) {
     out.push({ sugKey: key, title: title, due: p.due, slot: p.slot, cat: cat });
   }
   inWeek.filter(function (i) { return i.src === "own"; }).forEach(function (i) {
-    var msg = milestone(i.session, i.total, i.plan), label = i.title + (i.level && i.title.indexOf(i.level) < 0 ? " (" + i.level + ")" : ""), planT = i.plan && i.plan[i.session - 1];
+    var msg = milestone(i.session, i.total, i.plan), label = i.title + (i.level && i.title.indexOf(i.level) < 0 ? " (" + i.level + ")" : ""), planT = planLabel(i.plan, i.session);
     if (planT && !msg) label += ": " + planT;
     push(ymd(i.start) + "-" + i.ref, msg ? (msg.indexOf("Kiểm tra") === 0 ? "Soạn đề " + msg.toLowerCase() + " " : "Chuẩn bị " + msg.toLowerCase() + " ") + label : "Soạn bài " + label, i.start, "soan");
   });
@@ -915,7 +924,7 @@ function itemRow(i, now) {
   var chip = i.src === "kyna" ? '<span class="chip kyna">Kyna</span>' : i.place === "center" ? '<span class="chip hint">GO</span>' : '<span class="chip own">YEYE</span>';
   var extra = "";
   if (i.session > 0) {
-    var ms = milestone(i.session, i.total, i.plan), lesson = i.plan && i.plan[i.session - 1];
+    var ms = milestone(i.session, i.total, i.plan), lesson = planLabel(i.plan, i.session);
     extra += "<span>Buổi " + i.session + (i.total ? "/" + i.total : "") + (lesson ? " · " + esc(lesson) : "") + "</span>" + (ms ? '<span class="chip warn">' + ms + "</span>" : "");
   }
   if (i.example) extra += '<span class="chip ex">Ví dụ</span>';
@@ -1096,7 +1105,7 @@ function render() {
       if (total) bar = '<div class="bar"><i style="width:' + Math.min(100, Math.round(doneN / total * 100)) + '%"></i></div>';
       info = "Buổi tới: " + n.session + (total ? "/" + total : "") + " · " + dayLabel(n.date);
       if (total && n.session > total) info = "Đã hết " + total + " buổi của khóa.";
-      if (c.plan && c.plan[n.session - 1]) info += " · " + c.plan[n.session - 1];
+      if (c.plan && c.plan[n.session - 1]) info += " · " + planLabel(c.plan, n.session);
       for (var g = n.session; g <= total; g++) { var mm = milestone(g, total, c.plan); if (mm) { info += g === n.session ? " · " + mm : " · Còn " + (g - n.session) + " buổi đến " + mm.toLowerCase(); break; } }
     }
     return '<div class="course"><div class="title">' + esc(c.name) + '</div>' + bar + '<div class="meta"><span>' + esc(info) + "</span>" + (c.level ? "<span>" + esc(c.level) + "</span>" : "") + (safeUrl(c.planUrl) ? '<a class="link" href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Giáo án</a>' : "") + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + "</div></div>";
@@ -1389,7 +1398,7 @@ function reviewOf(sid, date) { return state.reviews.filter(function (r) { return
 function lowerFirst(t) { return t.charAt(0).toLocaleLowerCase("vi") + t.slice(1); }
 function joinVi(a) { return a.length > 1 ? a.slice(0, -1).join(", ") + " và " + a[a.length - 1] : a.join(""); }
 function reviewText(h, c, date, r) {
-  var n = sessionAt(c, date), lesson = c.plan && c.plan[n - 1], d = toDate(date), lines = [];
+  var n = sessionAt(c, date), lesson = planLabel(c.plan, n), d = toDate(date), lines = [];
   var at = Array.isArray(r.at) ? r.at : [], kt = r.kt && typeof r.kt === "object" ? r.kt : {};
   lines.push("Nhận xét buổi học " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " - Lớp " + c.name);
   lines.push("Học viên: " + titleName(h.name));
@@ -1444,7 +1453,7 @@ function fillProgress(c) {
   box.hidden = !total;
   if (!total) return;
   var nx = nextStartAfter(c, new Date()), cur = nx ? Math.max(0, sessionAt(c, nx.day) - 1) : 0, html = '<option value="0">Chưa học</option>';
-  for (var n = 1; n <= total; n++) html += '<option value="' + n + '">' + (c.trackMark ? "" : "Buổi " + n + (c.plan && c.plan[n - 1] ? " · " : "")) + esc(c.plan && c.plan[n - 1] ? c.plan[n - 1] : "") + "</option>";
+  for (var n = 1; n <= total; n++) html += '<option value="' + n + '">' + (c.trackMark ? "" : "Buổi " + n + (c.plan && c.plan[n - 1] ? " · " : "")) + esc(planLabel(c.plan, n)) + "</option>";
   $("rUpTo").innerHTML = html;
   $("rUpTo").value = String(Math.min(cur, total));
 }
@@ -1455,7 +1464,7 @@ $("rSaveUpTo").addEventListener("click", async function () {
   if (!nx) { $("rStatus").textContent = "Lớp này chưa có lịch sắp tới."; return; }
   try {
     await db.doc("classes/" + c.id).update({ sessionBase: up + 1, baseDate: nx.day, markDate: ymd(now) });
-    var title = c.plan && c.plan[up];
+    var title = planLabel(c.plan, up + 1);
     $("rStatus").textContent = (title ? "Buổi tới: " + title + " · " : "Buổi tới: ") + dayLabel(nx.date) + " " + hm(nx.date) + ". Các buổi sau đã tự lùi theo.";
     renderReview();
   } catch (x) { $("rStatus").textContent = "Chưa lưu được. Kiểm tra mạng rồi thử lại."; }
@@ -1464,7 +1473,7 @@ function renderReview() {
   var cid = $("rClass").value, date = $("rDate").value, c = state.classes.filter(function (x) { return x.id === cid; })[0];
   fillProgress(c);
   if (!c || !date) { $("reviewList").innerHTML = '<p class="empty">Chưa có lớp nào có học viên.</p>'; $("rLesson").textContent = ""; return; }
-  var n = sessionAt(c, date), lesson = c.plan && c.plan[n - 1];
+  var n = sessionAt(c, date), lesson = planLabel(c.plan, n);
   $("rLesson").textContent = (n > 0 ? "Buổi " + n + (c.total ? "/" + c.total : "") : "") + (lesson ? " · " + lesson : "");
   var people = studentsOf(cid);
   if (!people.length) { $("rStudents").innerHTML = ""; $("reviewList").innerHTML = '<p class="empty">Lớp này chưa có học viên.</p>'; return; }
