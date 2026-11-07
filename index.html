@@ -523,7 +523,7 @@ details[open] > summary { margin-bottom: 8px; }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 22.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 23.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -671,10 +671,10 @@ function planLabel(plan, n) {
 function milestone(n, total, plan) {
   var t = plan && plan[n - 1];
   if (t) {
-    if (/期中复习|ôn tập kiểm tra giữa/i.test(t)) return "Ôn giữa kỳ";
-    if (/期中考试/.test(t)) return "Kiểm tra giữa kỳ";
-    if (/期末复习/.test(t)) return "Ôn cuối kỳ";
-    if (/期末考试|Kiểm tra và đánh giá cuối khóa/i.test(t)) return "Kiểm tra cuối kỳ";
+    if (/期中复习|ôn tập (kiểm tra )?giữa/i.test(t)) return "Ôn giữa kỳ";
+    if (/期中考试|^kiểm tra giữa/i.test(t)) return "Kiểm tra giữa kỳ";
+    if (/期末复习|^ôn tập cuối/i.test(t)) return "Ôn cuối kỳ";
+    if (/期末考试|Kiểm tra và đánh giá cuối khóa|^kiểm tra cuối/i.test(t)) return "Kiểm tra cuối kỳ";
     return "";
   }
   if (plan || Number(total) !== 24) return "";
