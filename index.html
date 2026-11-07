@@ -404,6 +404,15 @@ details[open] > summary { margin-bottom: 8px; }
           <div class="two">
             <label for="cBase">Buổi tới là buổi số<input id="cBase" type="number" min="1" max="200" placeholder="Bỏ trống nếu không theo khóa"></label>
             <label for="cTotal">Tổng số buổi của khóa<input id="cTotal" type="number" min="1" max="200" value="24"></label>
+          </div>
+          <div class="two">
+            <label for="cLessons">Số bài của giáo trình<input id="cLessons" type="number" min="1" max="80" placeholder="VD: 15"></label>
+            <label for="cPer">Mỗi bài học<select id="cPer"><option value="">Không chia theo bài</option><option value="1">1 buổi</option><option value="2">2 buổi</option><option value="3">3 buổi</option></select></label>
+            <label for="cNextB">Buổi tới học bài số<input id="cNextB" type="number" min="1" max="80" placeholder="VD: 5"></label>
+            <label for="cNextS">Buổi thứ mấy của bài<select id="cNextS"><option value="1">Buổi 1</option><option value="2">Buổi 2</option><option value="3">Buổi 3</option></select></label>
+          </div>
+          <p class="hint" style="font-size:12px;color:var(--muted);margin:0">Chia theo bài thì app tự lập danh sách “Bài 1 · Buổi 1, Bài 1 · Buổi 2…” và tự tính tổng số buổi. Khi chuyển sang HSK 2, HSK 3: sửa lớp, chọn trình độ mới, nhập số bài, bài tới là bài 1.</p>
+          <div class="two">
             <label for="cStudent">Học viên riêng (nếu dạy 1 người)<select id="cStudent"><option value="">Không chọn</option></select></label>
           </div>
           <label for="cLink">Link vào lớp (nếu có)<input id="cLink" type="url" placeholder="https://"></label>
@@ -513,7 +522,7 @@ details[open] > summary { margin-bottom: 8px; }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 19.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 20.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -1349,6 +1358,7 @@ $("noteForm").addEventListener("submit", async function (e) {
     e.target.reset();
   } catch (x) { saveFail(); }
 });
+function lessonPlan(n, per) { var out = []; for (var b = 1; b <= n; b++) for (var j = 1; j <= per; j++) out.push(per > 1 ? "Bài " + b + " · Buổi " + j : "Bài " + b); return out; }
 $("classForm").addEventListener("submit", async function (e) {
   e.preventDefault();
   if (!db) { saveFail(); return; }
@@ -1357,7 +1367,11 @@ $("classForm").addEventListener("submit", async function (e) {
   if ($("cEnd").value <= $("cStart").value) { setSync("Giờ kết thúc phải sau giờ bắt đầu.", true); return; }
   var base = Number($("cBase").value) || 0, today = startOfDay(new Date()), first = today;
   for (var k = 0; k < 7; k++) { var dd = addDays(today, k); if (days.indexOf(dd.getDay()) >= 0) { first = dd; break; } }
+  var per = Number($("cPer").value) || 0, nl = Number($("cLessons").value) || 0, nb = Number($("cNextB").value) || 0;
+  if (per && nl && nb) base = (Math.min(nb, nl) - 1) * per + Math.min(Number($("cNextS").value) || 1, per);
   var body = { name: $("cName").value.trim(), weekdays: days, weekday: days[0], start: $("cStart").value, end: $("cEnd").value, link: $("cLink").value.trim(), place: $("cPlace").value, level: $("cLevel").value, studentId: $("cStudent").value, sessionBase: base, baseDate: base ? ymd(first) : "", total: base ? (Number($("cTotal").value) || 0) : 0 };
+  if (per && nl) Object.assign(body, { plan: lessonPlan(nl, per), total: nl * per, lessons: nl, perLesson: per, trackMark: true });
+  else if (state.editClass) Object.assign(body, { lessons: 0, perLesson: 0 });
   try {
     if (state.editClass) await db.doc("classes/" + state.editClass).update(body);
     else await db.collection("classes").add(Object.assign(body, { skips: [] }));
@@ -1568,6 +1582,9 @@ function editClass(id) {
   var today = ymd(startOfDay(new Date())), n = nextOccurrence(c, today);
   $("cName").value = c.name || ""; $("cPlace").value = c.place || "own"; $("cLevel").value = c.level || ""; $("cStart").value = c.start; $("cEnd").value = c.end; $("cLink").value = c.link || ""; $("cStudent").value = c.studentId || "";
   $("cBase").value = n && n.session ? n.session : ""; $("cTotal").value = c.total || 24;
+  var per = Number(c.perLesson) || 0;
+  $("cPer").value = per ? String(per) : ""; $("cLessons").value = per ? (c.lessons || "") : "";
+  $("cNextB").value = per && n && n.session ? Math.ceil(n.session / per) : ""; $("cNextS").value = per && n && n.session ? String((n.session - 1) % per + 1) : "1";
   var days = classDays(c);
   document.querySelectorAll('input[name="cDays"]').forEach(function (x) { x.checked = days.indexOf(Number(x.value)) >= 0; });
   $("cSave").textContent = "Lưu thay đổi"; $("cCancel").hidden = false; $("classSummary").textContent = "Sửa lớp";
