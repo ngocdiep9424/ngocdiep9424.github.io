@@ -534,7 +534,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 25.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 26.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -1419,8 +1419,8 @@ async function loadPlanDoc(key) {
   LP_CACHE[key] = r.data ? r.data.data : null;
   return LP_CACHE[key];
 }
-var LP_SKIP = /^(stt|id\w*|attachfiles|active|orderby|tuần|ngày|buổi số|giai đoạn|chú thích màu)?$/i;
-var LP_NAMES = { tenbaihoc: "Tên bài", noidungbaihoc: "Nội dung bài học", baitapvenha: "Bài tập về nhà", muctieu: "Mục tiêu" };
+var LP_SKIP = /^(stt|id\w*|attachfiles|active|orderby|tuần|ngày|buổi số|giai đoạn|chú thích màu|usercreate)?$/i;
+var LP_NAMES = { tenbaihoc: "Tên bài", noidungbaihoc: "Nội dung bài học", baitapvenha: "Bài tập về nhà", muctieu: "Mục tiêu", tailieuvahoclieu: "Tài liệu & học liệu", lessonplan: "Tiến trình buổi dạy", danhgiavakiemtra: "Đánh giá & kiểm tra", ghichu: "Ghi chú" };
 function planRow(doc, n) {
   var h = doc.headers || [], rows = doc.rows || [], ci = -1;
   for (var k = 0; k < h.length; k++) if (/^(stt|buổi số)$/i.test(String(h[k]).trim())) { ci = k; break; }
