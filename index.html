@@ -171,6 +171,16 @@ details[open] > summary { margin-bottom: 8px; }
 .days legend { font-size: 13px; color: var(--muted); padding: 0 0 4px; }
 .days label.check { gap: 4px; font-size: 13px; }
 .course { padding: 10px 0; border-top: 1px solid var(--line); }
+dialog.plandlg { width: min(760px, calc(100vw - 24px)); max-height: calc(100vh - 40px); padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--solid); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
+.pdhead { position: sticky; top: 0; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; padding: 14px 18px; background: var(--solid); border-bottom: 1px solid var(--line); }
+.pdhead b { font-size: 16px; line-height: 1.35; }
+.pdhead small { display: block; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.pdbody { padding: 12px 18px 18px; overflow: auto; max-height: calc(100vh - 140px); }
+.pdsec { margin: 0 0 14px; }
+.pdsec h4 { margin: 0 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .03em; }
+.pdsec div { white-space: pre-wrap; line-height: 1.55; font-size: 14px; }
+.pdnav { display: flex; gap: 8px; margin-top: 6px; }
 .bar { height: 7px; border-radius: 4px; background: var(--accent-soft); overflow: hidden; margin: 6px 0 4px; }
 .bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .rv { padding: 12px 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
@@ -401,6 +411,7 @@ details[open] > summary { margin-bottom: 8px; }
           <fieldset class="days"><legend>Học vào các thứ</legend><div class="filters">
             <label class="check"><input type="checkbox" name="cDays" value="1">T2</label><label class="check"><input type="checkbox" name="cDays" value="2">T3</label><label class="check"><input type="checkbox" name="cDays" value="3">T4</label><label class="check"><input type="checkbox" name="cDays" value="4">T5</label><label class="check"><input type="checkbox" name="cDays" value="5">T6</label><label class="check"><input type="checkbox" name="cDays" value="6">T7</label><label class="check"><input type="checkbox" name="cDays" value="0">CN</label>
           </div></fieldset>
+          <label for="cLpTab">Tab giáo án chi tiết (tên tab trong file TeachingPlan, hoặc gc11)<input id="cLpTab" type="text" placeholder="VD: gc3, hsk1, yct4, gc11"></label>
           <label for="cTimes">Giờ riêng theo thứ (nếu có ngày học giờ khác)<input id="cTimes" type="text" placeholder="VD: T7 17:00-18:00, CN 17:00-18:00"></label>
           <div class="two">
             <label for="cBase">Buổi tới là buổi số<input id="cBase" type="number" min="1" max="200" placeholder="Bỏ trống nếu không theo khóa"></label>
@@ -523,13 +534,14 @@ details[open] > summary { margin-bottom: 8px; }
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 24.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 25.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
 </div>
 <div id="toasts" aria-live="polite"></div>
 
+<dialog id="planDlg" class="plandlg" aria-labelledby="pdTitle"><div class="pdhead"><div><b id="pdTitle">Giáo án</b><small id="pdSub"></small><div class="pdnav"><button class="link" type="button" id="pdPrev">‹ Buổi trước</button><button class="link" type="button" id="pdNext">Buổi sau ›</button></div></div><button class="btn quiet" type="button" id="pdClose">Đóng</button></div><div class="pdbody" id="pdBody"></div></dialog>
 <script src="/supabase.js"></script>
 <script>
 var WD = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
@@ -731,7 +743,7 @@ function buildItems(lessons, classes, today) {
       var d = addDays(today, i);
       if (classDays(c).indexOf(d.getDay()) < 0) continue;
       var day = ymd(d);
-      out.push({ key: "c" + c.id + day, src: "own", ref: c.id, day: day, start: toDate(day + "T" + classTime(c, day)[0]), end: toDate(day + "T" + classTime(c, day)[1]), title: c.name, level: c.level, place: c.place || "own", session: sessionAt(c, day), total: Number(c.total) || 0, plan: c.plan, planUrl: safeUrl(c.planUrl), cancelled: (c.skips || []).indexOf(day) >= 0, done: (c.doneDays || []).indexOf(day) >= 0, link: safeUrl(c.link), example: !!c.example });
+      out.push({ key: "c" + c.id + day, src: "own", ref: c.id, day: day, start: toDate(day + "T" + classTime(c, day)[0]), end: toDate(day + "T" + classTime(c, day)[1]), title: c.name, level: c.level, place: c.place || "own", session: sessionAt(c, day), total: Number(c.total) || 0, plan: c.plan, planUrl: safeUrl(c.planUrl), lp: lpKey(c), cancelled: (c.skips || []).indexOf(day) >= 0, done: (c.doneDays || []).indexOf(day) >= 0, link: safeUrl(c.link), example: !!c.example });
     }
   });
   return out.sort(function (a, b) { return a.start - b.start; });
@@ -937,6 +949,7 @@ function itemRow(i, now) {
   if (i.link) extra += '<a class="link" href="' + esc(i.link) + '" target="_blank" rel="noopener">Vào lớp</a>';
   if (i.src === "own" && !i.cancelled && studentsOf(i.ref).length && i.start <= new Date(now.getTime() + 3600000)) extra += '<button class="link" type="button" data-act="attendNow" data-id="' + esc(i.ref) + '" data-day="' + esc(i.day) + '">Điểm danh</button>';
   if (i.planUrl) extra += '<a class="link" href="' + esc(i.planUrl) + '" target="_blank" rel="noopener">Giáo án</a>';
+  if (i.lp && i.session > 0 && !i.cancelled) extra += '<button class="link" type="button" data-act="showPlan" data-id="' + esc(i.ref) + '" data-n="' + i.session + '">Xem giáo án</button>';
   var past = i.end <= now;
   if (!past) extra += '<button class="link" type="button" data-act="' + (i.src === "kyna" ? "cancelLesson" : "cancelClass") + '" data-id="' + esc(i.ref) + '" data-day="' + esc(i.day || "") + '">' + (i.cancelled ? "Khôi phục" : "Đã hủy lớp") + "</button>";
   var seg = i.cancelled ? "" : '<div class="seg sm status" role="group" aria-label="Trạng thái buổi dạy"><button type="button" data-act="classDone" data-src="' + i.src + '" data-id="' + esc(i.ref) + '" data-day="' + esc(i.day || "") + '" data-val="0" aria-pressed="' + !i.done + '">Chưa xong</button><button type="button" data-act="classDone" data-src="' + i.src + '" data-id="' + esc(i.ref) + '" data-day="' + esc(i.day || "") + '" data-val="1" aria-pressed="' + !!i.done + '">Đã xong</button></div>';
@@ -1221,6 +1234,7 @@ document.addEventListener("click", async function (ev) {
   var act = el.dataset.act, id = el.dataset.id;
   if (act === "openTask") { resetTaskForm(); openTaskForm(); return; }
   if (act === "editTask") { editTask(id); return; }
+  if (act === "showPlan") { showPlan(id, Number(el.dataset.n)); return; }
   if (act === "attendNow") {
     showTab("students"); fillReviewClasses(); $("rClass").value = id; $("rDate").value = el.dataset.day; renderReview();
     $("reviewPage").scrollIntoView({ block: "start" });
@@ -1390,6 +1404,69 @@ var LEVEL_TEMPLATE = { "HSK 1": "hsk1", "HSK 2": "hsk2", "HSK 3": "hsk3", "YCT 3
 $("cLevel").addEventListener("change", function () {
   if ($("cPlace").value === "own" && LEVEL_TEMPLATE[$("cLevel").value] && (!$("cPer").value || PLAN_TEMPLATES[$("cPer").value])) $("cPer").value = LEVEL_TEMPLATE[$("cLevel").value];
 });
+/* Giáo án chi tiết: script Google đọc các file giáo án của Vicky và lưu vào collection "lessonplans". */
+var LP_CACHE = {}, LP_CUR = null;
+function lpKey(c) {
+  if (!c) return "";
+  var t = String(c.lpTab || c.planKey || "").trim();
+  if (!t) return "";
+  return t.toLowerCase() === "gc11" ? "gc11" : "tp:" + t;
+}
+async function loadPlanDoc(key) {
+  if (key in LP_CACHE) return LP_CACHE[key];
+  var r = await sb.from("items").select("data").eq("collection", "lessonplans").eq("id", key).maybeSingle();
+  if (r.error) throw r.error;
+  LP_CACHE[key] = r.data ? r.data.data : null;
+  return LP_CACHE[key];
+}
+var LP_SKIP = /^(stt|id\w*|attachfiles|active|orderby|tuần|ngày|buổi số|giai đoạn|chú thích màu)?$/i;
+var LP_NAMES = { tenbaihoc: "Tên bài", noidungbaihoc: "Nội dung bài học", baitapvenha: "Bài tập về nhà", muctieu: "Mục tiêu" };
+function planRow(doc, n) {
+  var h = doc.headers || [], rows = doc.rows || [], ci = -1;
+  for (var k = 0; k < h.length; k++) if (/^(stt|buổi số)$/i.test(String(h[k]).trim())) { ci = k; break; }
+  if (ci >= 0) for (var r = 0; r < rows.length; r++) if (Number(rows[r][ci]) === n) return rows[r];
+  return rows[n - 1] || null;
+}
+function linkText(t) {
+  return String(t).split(/(https?:\/\/[^\s]+)/).map(function (part, i) {
+    return i % 2 ? '<a href="' + esc(part) + '" target="_blank" rel="noopener">Mở link</a>' : esc(part);
+  }).join("");
+}
+async function showPlan(classId, n) {
+  var c = state.classes.filter(function (x) { return x.id === classId; })[0];
+  if (!c || !n) return;
+  LP_CUR = { id: classId, n: n };
+  var dlg = $("planDlg"), key = lpKey(c);
+  $("pdTitle").textContent = c.name + " · Buổi " + n + (c.total ? "/" + c.total : "");
+  $("pdSub").textContent = planLabel(c.plan, n) || "";
+  $("pdPrev").disabled = n <= 1; $("pdNext").disabled = !!c.total && n >= Number(c.total);
+  $("pdBody").innerHTML = '<p class="hint">Đang tải giáo án…</p>';
+  if (!dlg.open) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
+  try {
+    var doc = await loadPlanDoc(key), row = doc && planRow(doc, n);
+    if (!row) {
+      $("pdBody").innerHTML = '<p class="hint">Chưa có giáo án cho buổi này. App đọc tab <b>' + esc(key.replace(/^tp:/, "")) + '</b>; nếu tab chưa có dòng buổi ' + n + ', thêm vào Google Sheets rồi chạy lại hàm layGiaoAn trong script.</p>';
+      return;
+    }
+    var html = "";
+    var hs = doc.headers || [];
+    row.forEach(function (v, k) {
+      var hd = String(hs[k] == null ? "" : hs[k]).trim();
+      if (!v || !String(v).trim()) return;
+      if (hd && LP_SKIP.test(hd)) return;
+      if (!hd && !/https?:\/\//.test(String(v))) return;
+      var name = LP_NAMES[hd.toLowerCase()] || hd || "Tài liệu";
+      html += '<section class="pdsec"><h4>' + esc(name) + '</h4><div>' + linkText(v) + "</div></section>";
+    });
+    $("pdBody").innerHTML = html || '<p class="hint">Dòng giáo án của buổi này còn trống.</p>';
+    if (doc.updatedAt) $("pdBody").innerHTML += '<p class="hint">Cập nhật từ Google Sheets lúc ' + esc(new Date(doc.updatedAt).toLocaleString("vi-VN")) + ".</p>";
+  } catch (e) {
+    $("pdBody").innerHTML = '<p class="hint">Không tải được giáo án: ' + esc(e.message || e) + "</p>";
+  }
+}
+$("pdClose").addEventListener("click", function () { $("planDlg").close ? $("planDlg").close() : $("planDlg").removeAttribute("open"); });
+$("pdPrev").addEventListener("click", function () { if (LP_CUR) showPlan(LP_CUR.id, LP_CUR.n - 1); });
+$("pdNext").addEventListener("click", function () { if (LP_CUR) showPlan(LP_CUR.id, LP_CUR.n + 1); });
 function lessonPlan(n, per) { var out = []; for (var b = 1; b <= n; b++) for (var j = 1; j <= per; j++) out.push(per > 1 ? "Bài " + b + " · Buổi " + j : "Bài " + b); return out; }
 $("classForm").addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -1405,6 +1482,7 @@ $("classForm").addEventListener("submit", async function (e) {
   if (per && nl && nb) base = (Math.min(nb, nl) - 1) * per + Math.min(Number($("cNextS").value) || 1, per);
   var body = { name: $("cName").value.trim(), weekdays: days, weekday: days[0], start: $("cStart").value, end: $("cEnd").value, link: $("cLink").value.trim(), place: $("cPlace").value, level: $("cLevel").value, studentId: $("cStudent").value, sessionBase: base, baseDate: base ? ymd(first) : "", total: base ? (Number($("cTotal").value) || 0) : 0 };
   body.times = parseTimes($("cTimes").value);
+  body.lpTab = $("cLpTab").value.trim();
   if (tkey) Object.assign(body, { plan: PLAN_TEMPLATES[tkey].slice(), total: PLAN_TEMPLATES[tkey].length, planKey: tkey, lessons: 0, perLesson: 0, trackMark: true });
   else if (per && nl) Object.assign(body, { planKey: "", plan: lessonPlan(nl, per), total: nl * per, lessons: nl, perLesson: per, trackMark: true });
   else if (state.editClass) Object.assign(body, { lessons: 0, perLesson: 0 });
@@ -1619,6 +1697,7 @@ function editClass(id) {
   $("cName").value = c.name || ""; $("cPlace").value = c.place || "own"; $("cLevel").value = c.level || ""; $("cStart").value = c.start; $("cEnd").value = c.end; $("cLink").value = c.link || ""; $("cStudent").value = c.studentId || "";
   $("cBase").value = n && n.session ? n.session : ""; $("cTotal").value = c.total || 24;
   $("cTimes").value = timesText(c.times);
+  $("cLpTab").value = c.lpTab || "";
   var per = Number(c.perLesson) || 0;
   $("cPer").value = per ? String(per) : ""; $("cLessons").value = per ? (c.lessons || "") : "";
   if (c.planKey && PLAN_TEMPLATES[c.planKey]) {
