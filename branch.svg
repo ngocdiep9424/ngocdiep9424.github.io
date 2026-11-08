@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160">
+<defs>
+ <radialGradient id="pg" cx="0" cy="0" r="22" gradientUnits="userSpaceOnUse">
+  <stop offset="0" stop-color="#e46a8a"/><stop offset=".28" stop-color="#f6aec0"/><stop offset=".75" stop-color="#fde3ea"/><stop offset="1" stop-color="#fff6f8"/>
+ </radialGradient>
+ <linearGradient id="bk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a3e30"/><stop offset="1" stop-color="#3b281f"/></linearGradient>
+ <path id="p1" d="M0 0 C-7.5 -5 -9.5 -15 -5 -20.5 C-3.2 -22.6 -1.2 -21.2 0 -19.4 C1.2 -21.2 3.2 -22.6 5 -20.5 C9.5 -15 7.5 -5 0 0Z"/>
+ <g id="fl">
+  <g fill="url(#pg)" stroke="#e9a3b4" stroke-width=".45">
+   <use href="#p1"/><use href="#p1" transform="rotate(72)"/><use href="#p1" transform="rotate(144)"/><use href="#p1" transform="rotate(216)"/><use href="#p1" transform="rotate(288)"/>
+  </g>
+  <circle r="3.4" fill="#d9567a"/>
+  <g stroke="#c2456a" stroke-width=".55" stroke-linecap="round"><line x1="0" y1="0" x2="6.20" y2="0.00"/><line x1="0" y1="0" x2="5.37" y2="3.10"/><line x1="0" y1="0" x2="3.10" y2="5.37"/><line x1="0" y1="0" x2="0.00" y2="6.20"/><line x1="0" y1="0" x2="-3.10" y2="5.37"/><line x1="0" y1="0" x2="-5.37" y2="3.10"/><line x1="0" y1="0" x2="-6.20" y2="0.00"/><line x1="0" y1="0" x2="-5.37" y2="-3.10"/><line x1="0" y1="0" x2="-3.10" y2="-5.37"/><line x1="0" y1="0" x2="-0.00" y2="-6.20"/><line x1="0" y1="0" x2="3.10" y2="-5.37"/><line x1="0" y1="0" x2="5.37" y2="-3.10"/></g>
+  <g fill="#f2c14e"><circle cx="6.80" cy="0.00" r="0.95"/><circle cx="5.89" cy="3.40" r="0.95"/><circle cx="3.40" cy="5.89" r="0.95"/><circle cx="0.00" cy="6.80" r="0.95"/><circle cx="-3.40" cy="5.89" r="0.95"/><circle cx="-5.89" cy="3.40" r="0.95"/><circle cx="-6.80" cy="0.00" r="0.95"/><circle cx="-5.89" cy="-3.40" r="0.95"/><circle cx="-3.40" cy="-5.89" r="0.95"/><circle cx="-0.00" cy="-6.80" r="0.95"/><circle cx="3.40" cy="-5.89" r="0.95"/><circle cx="5.89" cy="-3.40" r="0.95"/></g>
+  <circle r="1.6" fill="#f7d77a"/>
+ </g>
+ <g id="fh">
+  <g fill="url(#pg)" stroke="#e9a3b4" stroke-width=".45">
+   <use href="#p1" transform="rotate(-50) scale(.95 1)"/><use href="#p1" transform="rotate(0)"/><use href="#p1" transform="rotate(50) scale(.95 1)"/>
+  </g>
+  <path d="M-5 2 C-2 5 2 5 5 2 C3 7 -3 7 -5 2Z" fill="#7a3b3b"/>
+  <g stroke="#c2456a" stroke-width=".55"><line x1="0" y1="0" x2="-3" y2="-8"/><line x1="0" y1="0" x2="0" y2="-9"/><line x1="0" y1="0" x2="3" y2="-8"/></g>
+  <g fill="#f2c14e"><circle cx="-3.2" cy="-8.6" r=".95"/><circle cx="0" cy="-9.7" r=".95"/><circle cx="3.2" cy="-8.6" r=".95"/></g>
+ </g>
+ <g id="bd">
+  <path d="M0 0 C-4.5 -3 -4.5 -10 0 -13 C4.5 -10 4.5 -3 0 0Z" fill="#f08aa3"/>
+  <path d="M0 -1 C-2 -4 -1.5 -9 0 -11.5" stroke="#fbd0db" stroke-width="1" fill="none"/>
+  <path d="M-3.2 -1.5 C-2 1.5 2 1.5 3.2 -1.5 C2 -3 -2 -3 -3.2 -1.5Z" fill="#6b3a34"/>
+ </g>
+ <path id="pt" d="M0 0 C-5 -3.5 -6.5 -10 -3.4 -14 C-2.1 -15.4 -.8 -14.5 0 -13.2 C.8 -14.5 2.1 -15.4 3.4 -14 C6.5 -10 5 -3.5 0 0Z" fill="#f7b9c8"/>
+</defs>
+<!-- cành chính: nét vuốt nhọn từ góc phải trên xuống trái -->
+<g fill="url(#bk)">
+ <path d="M246 6 C214 10 190 22 168 38 C146 54 124 62 100 70 C80 77 60 88 40 104 C30 112 22 121 14 132 C24 118 34 108 46 100 C66 86 86 78 104 74 C128 68 150 60 172 46 C194 32 216 20 246 14Z"/>
+ <path d="M168 40 C176 56 178 70 174 86 C172 76 170 66 164 50Z"/>
+ <path d="M120 66 C112 54 110 42 114 28 C116 40 118 50 126 62Z"/>
+ <path d="M74 82 C70 92 72 104 80 114 C74 104 72 94 78 84Z"/>
+ <path d="M206 22 C214 32 226 38 240 40 C226 40 214 36 202 26Z"/>
+</g>
+<g stroke="#2f2019" stroke-opacity=".35" stroke-width=".8" fill="none" stroke-linecap="round">
+ <path d="M220 13 C196 20 178 32 160 45"/><path d="M96 73 C76 80 58 92 40 106"/>
+</g>
+<g fill="#3b281f"><circle cx="168" cy="40" r="2.2"/><circle cx="121" cy="65" r="1.8"/><circle cx="76" cy="83" r="1.6"/></g>
+<!-- hoa -->
+<use href="#fl" transform="translate(148 50) rotate(12) scale(1.05)" opacity="1"/>
+<use href="#fl" transform="translate(186 30) rotate(-20) scale(0.82)" opacity="1"/>
+<use href="#fl" transform="translate(112 58) rotate(40) scale(0.74)" opacity="1"/>
+<use href="#fh" transform="translate(172 72) rotate(170) scale(0.8)"/>
+<use href="#fl" transform="translate(62 86) rotate(-8) scale(0.86)" opacity="1"/>
+<use href="#fh" transform="translate(114 34) rotate(-20) scale(0.7)"/>
+<use href="#fl" transform="translate(30 112) rotate(25) scale(0.6)" opacity="1"/>
+<use href="#bd" transform="translate(208 30) rotate(-60) scale(0.9)"/>
+<use href="#bd" transform="translate(90 70) rotate(-150) scale(0.8)"/>
+<use href="#bd" transform="translate(46 99) rotate(-140) scale(0.75)"/>
+<use href="#bd" transform="translate(176 86) rotate(160) scale(0.8)"/>
+<use href="#bd" transform="translate(222 39) rotate(-80) scale(0.75)"/>
+<!-- cánh rơi -->
+<use href="#pt" transform="translate(96 118) rotate(140) scale(0.75)" opacity="0.8"/>
+<use href="#pt" transform="translate(140 104) rotate(-30) scale(0.6)" opacity="0.7"/>
+<use href="#pt" transform="translate(54 140) rotate(70) scale(0.55)" opacity="0.6"/>
+</svg>

@@ -66,6 +66,25 @@ main { padding-block: 18px 96px; }
 section.view { display: flex; flex-direction: column; gap: 20px; }
 section.view[hidden] { display: none; }
 h2 { font-family: var(--font-display); font-size: 23px; font-weight: 700; margin: 0 0 6px; text-wrap: balance; }
+/* Hình minh họa nhỏ ở đầu mỗi mục. */
+h2.ic::before { content: ""; display: inline-block; width: 1.25em; height: 1.25em; margin-right: .38em; vertical-align: -.24em; background: var(--ic) center / contain no-repeat; }
+.ic-week { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%224%22 y=%227%22 width=%2224%22 height=%2221%22 rx=%224%22 fill=%22%23fffaf6%22 stroke=%22%234f7aa3%22 stroke-width=%221.6%22/%3E%3Crect x=%224%22 y=%227%22 width=%2224%22 height=%226%22 rx=%223%22 fill=%22%237fa3c6%22/%3E%3Cg stroke=%22%234f7aa3%22 stroke-width=%221.6%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M10 4.5v5M22 4.5v5%22/%3E%3C/g%3E%3Cg fill=%22%237fa3c6%22 opacity=%22.55%22%3E%3Crect x=%228%22 y=%2216%22 width=%224%22 height=%223%22 rx=%221%22/%3E%3Crect x=%2214%22 y=%2216%22 width=%224%22 height=%223%22 rx=%221%22/%3E%3Crect x=%228%22 y=%2221%22 width=%224%22 height=%223%22 rx=%221%22/%3E%3C/g%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2222.00%22 cy=%2219.44%22 r=%222.11%22/%3E%3Ccircle cx=%2224.91%22 cy=%2221.55%22 r=%222.11%22/%3E%3Ccircle cx=%2223.80%22 cy=%2224.98%22 r=%222.11%22/%3E%3Ccircle cx=%2220.20%22 cy=%2224.98%22 r=%222.11%22/%3E%3Ccircle cx=%2219.09%22 cy=%2221.55%22 r=%222.11%22/%3E%3C/g%3E%3Ccircle cx=%2222%22 cy=%2222.5%22 r=%221.29%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-brush { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M24 4 L28 8 L15 21 L11 17Z%22 fill=%22%237a5443%22/%3E%3Cpath d=%22M11 17 L15 21 C13 25 9 27 5 27 C5 23 7 19 11 17Z%22 fill=%22%233b4a58%22/%3E%3Cpath d=%22M22.5 5.5 L26.5 9.5%22 stroke=%22%23efc865%22 stroke-width=%222%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%227.00%22 cy=%225.30%22 r=%221.86%22/%3E%3Ccircle cx=%229.57%22 cy=%227.17%22 r=%221.86%22/%3E%3Ccircle cx=%228.59%22 cy=%2210.18%22 r=%221.86%22/%3E%3Ccircle cx=%225.41%22 cy=%2210.18%22 r=%221.86%22/%3E%3Ccircle cx=%224.43%22 cy=%227.17%22 r=%221.86%22/%3E%3C/g%3E%3Ccircle cx=%227%22 cy=%228%22 r=%221.14%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-sprout { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M16 28 V15%22 stroke=%22%234f9a68%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M16 17 C10 17 6 13 6 7 C12 7 16 11 16 17Z%22 fill=%22%238fc39b%22/%3E%3Cpath d=%22M16 15 C16 9 20 5 27 5 C27 11 23 15 16 15Z%22 fill=%22%234f9a68%22/%3E%3Cellipse cx=%2216%22 cy=%2228%22 rx=%229%22 ry=%222.2%22 fill=%22%237a5443%22 opacity=%22.35%22/%3E%3C/svg%3E"); }
+.ic-lantern { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M16 3v3%22 stroke=%22%237a5443%22 stroke-width=%221.6%22 stroke-linecap=%22round%22/%3E%3Crect x=%2211%22 y=%226%22 width=%2210%22 height=%223%22 rx=%221%22 fill=%22%237a5443%22/%3E%3Cellipse cx=%2216%22 cy=%2216.5%22 rx=%2210%22 ry=%228.5%22 fill=%22%23ef8a7a%22/%3E%3Cpath d=%22M16 8.2 C11 11 11 22 16 24.8 M16 8.2 C21 11 21 22 16 24.8%22 stroke=%22%23d25f55%22 stroke-width=%221.2%22 fill=%22none%22/%3E%3Crect x=%2211%22 y=%2224%22 width=%2210%22 height=%222.6%22 rx=%221%22 fill=%22%237a5443%22/%3E%3Cpath d=%22M16 26.6v3%22 stroke=%22%23efc865%22 stroke-width=%221.6%22 stroke-linecap=%22round%22/%3E%3C/svg%3E"); }
+.ic-book { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M3 7 C8 5 12 5.5 16 8 V27 C12 24.5 8 24 3 26Z%22 fill=%22%23fffaf6%22 stroke=%22%234f7aa3%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M29 7 C24 5 20 5.5 16 8 V27 C20 24.5 24 24 29 26Z%22 fill=%22%23eef3f9%22 stroke=%22%234f7aa3%22 stroke-width=%221.5%22/%3E%3Cg stroke=%22%237fa3c6%22 stroke-width=%221.2%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M6 11h6M6 14.5h6M6 18h5%22/%3E%3C/g%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2223.00%22 cy=%2211.94%22 r=%222.11%22/%3E%3Ccircle cx=%2225.91%22 cy=%2214.05%22 r=%222.11%22/%3E%3Ccircle cx=%2224.80%22 cy=%2217.48%22 r=%222.11%22/%3E%3Ccircle cx=%2221.20%22 cy=%2217.48%22 r=%222.11%22/%3E%3Ccircle cx=%2220.09%22 cy=%2214.05%22 r=%222.11%22/%3E%3C/g%3E%3Ccircle cx=%2223%22 cy=%2215%22 r=%221.29%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-chat { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M5 6 H27 A3 3 0 0 1 30 9 V19 A3 3 0 0 1 27 22 H14 L8 27 V22 H5 A3 3 0 0 1 2 19 V9 A3 3 0 0 1 5 6Z%22 fill=%22%23fde3ea%22 stroke=%22%23e0708f%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M16 18.5 C11 15 10.5 11.5 13 10.6 C14.4 10.1 15.5 10.9 16 12 C16.5 10.9 17.6 10.1 19 10.6 C21.5 11.5 21 15 16 18.5Z%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-bamboo { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cg fill=%22%238fc39b%22 stroke=%22%234f9a68%22 stroke-width=%221%22%3E%3Crect x=%228%22 y=%224%22 width=%225%22 height=%2225%22 rx=%222%22/%3E%3Crect x=%2218%22 y=%229%22 width=%225%22 height=%2220%22 rx=%222%22/%3E%3C/g%3E%3Cg stroke=%22%234f9a68%22 stroke-width=%221.6%22%3E%3Cpath d=%22M8 12h5M8 20h5M18 16h5M18 23h5%22/%3E%3C/g%3E%3Cpath d=%22M13 9 C17 6 21 6 25 5 C22 9 18 10 13 9Z%22 fill=%22%234f9a68%22/%3E%3Cpath d=%22M23 14 C26 12 28 12 30 13 C28 16 26 16 23 14Z%22 fill=%22%238fc39b%22/%3E%3C/svg%3E"); }
+.ic-idea { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M16 4 C10.5 4 7 8 7 13 C7 16.5 9 18.5 11 20.5 V23 H21 V20.5 C23 18.5 25 16.5 25 13 C25 8 21.5 4 16 4Z%22 fill=%22%23fff1c9%22 stroke=%22%23efc865%22 stroke-width=%221.6%22/%3E%3Crect x=%2211.5%22 y=%2224%22 width=%229%22 height=%222.4%22 rx=%221%22 fill=%22%237a5443%22/%3E%3Crect x=%2212.5%22 y=%2227.2%22 width=%227%22 height=%222%22 rx=%221%22 fill=%22%237a5443%22/%3E%3Cpath d=%22M13 16 L16 12 L19 16%22 stroke=%22%23d9a53a%22 stroke-width=%221.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg stroke=%22%23efc865%22 stroke-width=%221.5%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M3 12h2M27 12h2M6 4.5l1.5 1.5M26 4.5l-1.5 1.5%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ic-scroll { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%227%22 y=%225%22 width=%2218%22 height=%2222%22 rx=%222%22 fill=%22%23fffaf6%22 stroke=%22%237a5443%22 stroke-width=%221.5%22/%3E%3Crect x=%224%22 y=%223%22 width=%2224%22 height=%224%22 rx=%222%22 fill=%22%237a5443%22/%3E%3Crect x=%224%22 y=%2225%22 width=%2224%22 height=%224%22 rx=%222%22 fill=%22%237a5443%22/%3E%3Cg stroke=%22%234f7aa3%22 stroke-width=%221.2%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M11 11h10M11 14.5h10M11 18h7%22/%3E%3C/g%3E%3Cpath d=%22M21 19 L24 22 L21 25Z%22 fill=%22%23e0708f%22 opacity=%22.0%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2221.00%22 cy=%2217.98%22 r=%221.74%22/%3E%3Ccircle cx=%2223.40%22 cy=%2219.72%22 r=%221.74%22/%3E%3Ccircle cx=%2222.48%22 cy=%2222.54%22 r=%221.74%22/%3E%3Ccircle cx=%2219.52%22 cy=%2222.54%22 r=%221.74%22/%3E%3Ccircle cx=%2218.60%22 cy=%2219.72%22 r=%221.74%22/%3E%3C/g%3E%3Ccircle cx=%2221%22 cy=%2220.5%22 r=%221.06%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-phone { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%229%22 y=%223%22 width=%2214%22 height=%2226%22 rx=%223%22 fill=%22%23fffaf6%22 stroke=%22%233b4a58%22 stroke-width=%221.6%22/%3E%3Crect x=%2211.5%22 y=%227%22 width=%229%22 height=%2215%22 rx=%221.2%22 fill=%22%23eef3f9%22/%3E%3Ccircle cx=%2216%22 cy=%2225.5%22 r=%221.3%22 fill=%22%233b4a58%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2216.00%22 cy=%2211.80%22 r=%221.86%22/%3E%3Ccircle cx=%2218.57%22 cy=%2213.67%22 r=%221.86%22/%3E%3Ccircle cx=%2217.59%22 cy=%2216.68%22 r=%221.86%22/%3E%3Ccircle cx=%2214.41%22 cy=%2216.68%22 r=%221.86%22/%3E%3Ccircle cx=%2213.43%22 cy=%2213.67%22 r=%221.86%22/%3E%3C/g%3E%3Ccircle cx=%2216%22 cy=%2214.5%22 r=%221.14%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-petal { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M10 22 C5 18 5 11 9 8 C10.5 7 11.5 8 12 9 C13 8 14.5 7.5 15.5 9 C18 13 15 19 10 22Z%22 fill=%22%23f4a6b8%22/%3E%3Cpath d=%22M22 13 C18.5 10.5 18.5 5.5 21.5 3.5 C22.5 3 23.3 3.6 23.6 4.3 C24.4 3.7 25.4 3.5 26.1 4.6 C27.8 7.5 25.6 11.5 22 13Z%22 fill=%22%23f9c6d2%22/%3E%3Cpath d=%22M23 28 C20 26 20 22 22 20.5 C22.8 20 23.4 20.4 23.6 21 C24.2 20.6 24.9 20.5 25.4 21.3 C26.6 23.4 25.4 26.5 23 28Z%22 fill=%22%23e0708f%22 opacity=%22.7%22/%3E%3C/svg%3E"); }
+.ic-bell { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M16 4 C11 4 8 8 8 13 V19 L5 23 H27 L24 19 V13 C24 8 21 4 16 4Z%22 fill=%22%23fff1c9%22 stroke=%22%23d9a53a%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13 25 C13 27 14.4 28.5 16 28.5 C17.6 28.5 19 27 19 25%22 stroke=%22%23d9a53a%22 stroke-width=%221.6%22 fill=%22none%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2223.00%22 cy=%224.12%22 r=%221.98%22/%3E%3Ccircle cx=%2225.74%22 cy=%226.11%22 r=%221.98%22/%3E%3Ccircle cx=%2224.69%22 cy=%229.33%22 r=%221.98%22/%3E%3Ccircle cx=%2221.31%22 cy=%229.33%22 r=%221.98%22/%3E%3Ccircle cx=%2220.26%22 cy=%226.11%22 r=%221.98%22/%3E%3C/g%3E%3Ccircle cx=%2223%22 cy=%227%22 r=%221.22%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-mail { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%223%22 y=%227%22 width=%2226%22 height=%2218%22 rx=%223%22 fill=%22%23fffaf6%22 stroke=%22%234f7aa3%22 stroke-width=%221.6%22/%3E%3Cpath d=%22M4 9 L16 18 L28 9%22 stroke=%22%234f7aa3%22 stroke-width=%221.6%22 fill=%22none%22 stroke-linejoin=%22round%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2224.50%22 cy=%2218.12%22 r=%221.98%22/%3E%3Ccircle cx=%2227.24%22 cy=%2220.11%22 r=%221.98%22/%3E%3Ccircle cx=%2226.19%22 cy=%2223.33%22 r=%221.98%22/%3E%3Ccircle cx=%2222.81%22 cy=%2223.33%22 r=%221.98%22/%3E%3Ccircle cx=%2221.76%22 cy=%2220.11%22 r=%221.98%22/%3E%3C/g%3E%3Ccircle cx=%2224.5%22 cy=%2221%22 r=%221.22%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+.ic-cal { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%224%22 y=%227%22 width=%2224%22 height=%2221%22 rx=%224%22 fill=%22%23fffaf6%22 stroke=%22%234f9a68%22 stroke-width=%221.6%22/%3E%3Crect x=%224%22 y=%227%22 width=%2224%22 height=%226%22 rx=%223%22 fill=%22%238fc39b%22/%3E%3Cg stroke=%22%234f9a68%22 stroke-width=%221.6%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M10 4.5v5M22 4.5v5%22/%3E%3C/g%3E%3Cpath d=%22M10 20 L14 24 L22 16%22 stroke=%22%234f9a68%22 stroke-width=%222.2%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E"); }
+.ic-box { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M4 11 L16 5 L28 11 V23 L16 29 L4 23Z%22 fill=%22%23f3e3cf%22 stroke=%22%237a5443%22 stroke-width=%221.5%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M4 11 L16 17 L28 11 M16 17 V29%22 stroke=%22%237a5443%22 stroke-width=%221.5%22 fill=%22none%22/%3E%3Cpath d=%22M10 8 L22 14%22 stroke=%22%23efc865%22 stroke-width=%222.4%22/%3E%3C/svg%3E"); }
+.ic-seal { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2211%22 r=%226%22 fill=%22%23fde3ea%22 stroke=%22%23e0708f%22 stroke-width=%221.6%22/%3E%3Cpath d=%22M5 28 C5 21 10 18 16 18 C22 18 27 21 27 28Z%22 fill=%22%23eef3f9%22 stroke=%22%234f7aa3%22 stroke-width=%221.6%22/%3E%3Cg fill=%22%23f4a6b8%22%3E%3Ccircle cx=%2225.00%22 cy=%223.48%22 r=%221.74%22/%3E%3Ccircle cx=%2227.40%22 cy=%225.22%22 r=%221.74%22/%3E%3Ccircle cx=%2226.48%22 cy=%228.04%22 r=%221.74%22/%3E%3Ccircle cx=%2223.52%22 cy=%228.04%22 r=%221.74%22/%3E%3Ccircle cx=%2222.60%22 cy=%225.22%22 r=%221.74%22/%3E%3C/g%3E%3Ccircle cx=%2225%22 cy=%226%22 r=%221.06%22 fill=%22%23e0708f%22/%3E%3C/svg%3E"); }
+
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .page { background: var(--surface); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(12px) saturate(1.2); border: 1px solid rgba(255,255,255,.55); border-radius: 18px; padding: 16px 18px; min-width: 0; box-shadow: 0 8px 28px rgba(50,110,150,.12); }
@@ -79,7 +98,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .status.error { color: var(--danger); }
 .status:empty { display: none; }
 
-.hero { background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='90' viewBox='0 0 120 90'><path d='M6 80 C30 64 52 44 80 30 C92 24 104 16 116 8' stroke='%237a5a4a' stroke-width='2.5' fill='none' stroke-linecap='round'/><g fill='%23f4b8c4'><circle cx='50' cy='46' r='8'/><circle cx='84' cy='28' r='7'/><circle cx='106' cy='14' r='5'/><circle cx='28' cy='64' r='5'/></g><g fill='%23e58aa0'><circle cx='50' cy='46' r='2.6'/><circle cx='84' cy='28' r='2.3'/></g></svg>") right 8px top 6px no-repeat, linear-gradient(135deg, var(--hero), var(--hero2)); color: var(--on-hero); border-radius: 20px; padding: 20px 22px; display: grid; gap: 2px; justify-items: start; box-shadow: 0 10px 28px rgba(60,120,160,.14); }
+.hero { background: url("/branch.svg") right -10px top -6px / 210px auto no-repeat, linear-gradient(135deg, var(--hero), var(--hero2)); color: var(--on-hero); border-radius: 20px; padding: 20px 22px; display: grid; gap: 2px; justify-items: start; box-shadow: 0 10px 28px rgba(60,120,160,.14); }
 .hero.soon { outline: 3px solid var(--own); }
 .hero .eyebrow { color: var(--hero-muted); font-size: 13px; }
 .hero .when { max-width: calc(100% - 96px); font-family: var(--font-display); font-size: 31px; line-height: 1.2; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; text-wrap: balance; }
@@ -206,6 +225,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
   .col > .page.grow { flex: 1; min-height: 0; overflow-y: auto; }
   header.top { padding-block: 10px 4px; }
   .hero .when { font-size: 27px; }
+  .hero { background-size: 160px auto, auto; }
   .rv-detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; align-items: start; }
   .rv textarea { min-height: 280px; }
 }
@@ -350,7 +370,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
     </div>
     <div class="col">
     <div class="page grow">
-      <div class="head-row"><h2 id="weekTitle">Tuần này</h2><button class="link" type="button" data-go="cal">Xem tất cả ngày</button></div>
+      <div class="head-row"><h2 class="ic ic-week" id="weekTitle">Tuần này</h2><button class="link" type="button" data-go="cal">Xem tất cả ngày</button></div>
       <div class="week" id="week"></div>
       <div id="dayList" style="margin-top:10px"></div>
     </div>
@@ -400,7 +420,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
   <section class="view cols2" id="view-plan" hidden>
     <div class="col">
     <div class="page">
-      <h2>Nhập nhanh công việc</h2>
+      <h2 class="ic ic-brush">Nhập nhanh công việc</h2>
       <form class="add" id="quickForm">
         <label for="qText">Mỗi dòng một việc, ghi thứ và buổi ở đầu dòng<textarea id="qText" rows="4" placeholder="T2 sáng soạn YCT 2 bài 6&#10;T3 chiều chấm bài lớp HSK 1&#10;T3 14h gọi phụ huynh&#10;CN tối chuẩn bị bài mỗi tuần"></textarea></label>
         <div class="actions"><button class="btn" type="submit">Lưu vào kế hoạch</button></div>
@@ -408,16 +428,16 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
       <p class="status" id="quickStatus" role="status"></p>
     </div>
     <div class="page"><div class="head-row">
-      <h2 id="planTitle" style="margin:0">Tuần tới</h2>
+      <h2 class="ic ic-sprout" id="planTitle" style="margin:0">Tuần tới</h2>
       <div class="seg" role="group" aria-label="Chọn tuần"><button type="button" data-week="0" id="wk0">Tuần này</button><button type="button" data-week="1" id="wk1">Tuần tới</button></div>
     </div></div>
-    <div class="page" id="sugPage"><div class="head-row"><h2>Đề xuất cho tuần</h2><button class="link" type="button" data-act="addAllSug">Thêm tất cả</button></div><div id="sugList"></div></div>
+    <div class="page" id="sugPage"><div class="head-row"><h2 class="ic ic-lantern">Đề xuất cho tuần</h2><button class="link" type="button" data-act="addAllSug">Thêm tất cả</button></div><div id="sugList"></div></div>
     </div>
     <div class="col"><div class="page grow"><div id="planGrid"></div></div></div>
   </section>
 
   <section class="view cols2" id="view-cal" hidden>
-    <div class="col"><div class="page grow"><div class="head-row"><h2>Lịch dạy và công việc</h2><button class="link" type="button" data-act="openTask">+ Thêm việc</button></div><div id="calList"></div></div></div>
+    <div class="col"><div class="page grow"><div class="head-row"><h2 class="ic ic-book">Lịch dạy và công việc</h2><button class="link" type="button" data-act="openTask">+ Thêm việc</button></div><div id="calList"></div></div></div>
     <div class="col">
     <div class="page">
       <details id="classBox">
@@ -466,7 +486,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
   <section class="view colsR" id="view-students" hidden>
     <div class="col">
     <div class="page grow" id="reviewPage">
-      <h2>Nhận xét nhanh</h2>
+      <h2 class="ic ic-chat">Nhận xét nhanh</h2>
       <div class="two">
         <label for="rClass">Lớp<select id="rClass"></select></label>
         <label for="rDate">Ngày học<input id="rDate" type="date"></label>
@@ -487,7 +507,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
     </div>
     </div>
     <div class="col">
-    <div class="page"><h2>Tiến độ các lớp</h2><div id="courseList"></div></div>
+    <div class="page"><h2 class="ic ic-bamboo">Tiến độ các lớp</h2><div id="courseList"></div></div>
     <div class="page grow">
       <details id="studentBox">
         <summary id="studentSummary">Thêm học viên</summary>
@@ -509,43 +529,43 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 
   <section class="view cols2" id="view-notes" hidden>
     <div class="col"><div class="page">
-      <h2>Góc ý tưởng</h2>
+      <h2 class="ic ic-idea">Góc ý tưởng</h2>
       <form class="add" id="noteForm">
         <label for="nText">Lưu cảm hứng, đề xuất, bài học đáng nhớ<textarea id="nText" required maxlength="2000" placeholder="Ví dụ: Tuần sau thử thêm phần luyện nghe vào đầu giờ"></textarea></label>
         <div><button class="btn" type="submit">Lưu ghi nhớ</button></div>
       </form>
     </div>
     </div>
-    <div class="col"><div class="page grow"><h2>Đã lưu</h2><div id="noteList"></div></div></div>
+    <div class="col"><div class="page grow"><h2 class="ic ic-scroll">Đã lưu</h2><div id="noteList"></div></div></div>
   </section>
 
   <section class="view toolsgrid" id="view-tools" hidden>
     <div class="page tool">
-      <h2>Cài lên máy</h2>
+      <h2 class="ic ic-phone">Cài lên máy</h2>
       <p id="installHint">Máy tính: trên Chrome hoặc Edge, bấm biểu tượng cài đặt ở thanh địa chỉ. Điện thoại Android (OPPO, Samsung…): mở bằng Chrome, bấm ⋮ rồi “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”. iPhone: mở bằng Safari, bấm Chia sẻ rồi “Thêm vào MH chính”.</p>
       <button class="btn" type="button" id="installBtn" hidden>Cài Thư Phòng lên máy này</button>
     </div>
     <div class="page tool">
-      <h2>Cánh hoa bay</h2>
+      <h2 class="ic ic-petal">Cánh hoa bay</h2>
       <p>Cánh hoa đào bay nhẹ phía sau nội dung.</p>
       <button class="btn quiet" type="button" id="rainBtn">Tắt cánh hoa bay</button>
     </div>
     <div class="page tool">
-      <h2>Thông báo</h2>
+      <h2 class="ic ic-bell">Thông báo</h2>
       <p id="pushHint">Bật trên từng máy để được nhắc cả khi đóng app. Điện thoại Android, nhất là OPPO: vào Cài đặt → Ứng dụng → Chrome, bật Thông báo và cho phép chạy nền, không hạn chế pin. iPhone: cài app lên màn hình chính trước.</p>
       <div class="actions"><button class="btn" type="button" id="pushBtn">Bật thông báo trên máy này</button><button class="btn quiet" type="button" id="pushTest">Gửi thử</button></div>
     </div>
     <div class="page tool">
-      <h2>Lịch Kyna từ Gmail</h2>
+      <h2 class="ic ic-mail">Lịch Kyna từ Gmail</h2>
       <p id="gmailInfo">Chưa nhận lần cập nhật nào từ Gmail.</p>
     </div>
     <div class="page tool">
-      <h2>Đưa lịch sang Google Calendar</h2>
+      <h2 class="ic ic-cal">Đưa lịch sang Google Calendar</h2>
       <p>Tải tệp CSV gồm lớp dạy trong 21 ngày tới và công việc có ngày giờ, rồi nhập vào Google Calendar bằng mục Nhập trong Cài đặt.</p>
       <button class="btn" type="button" id="csvBtn">Tải tệp lịch</button>
     </div>
     <div class="page tool">
-      <h2>Sao lưu dữ liệu</h2>
+      <h2 class="ic ic-box">Sao lưu dữ liệu</h2>
       <p>Lớp dạy, công việc và ghi nhớ đã tự lưu và mở được trên mọi thiết bị khi đăng nhập. Tệp sao lưu là bản dự phòng.</p>
       <div class="actions">
         <button class="btn" type="button" id="backupBtn">Tải bản sao lưu</button>
@@ -554,13 +574,13 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
       <input id="restoreFile" type="file" accept="application/json,.json" hidden>
     </div>
     <div class="page tool">
-      <h2>Tài khoản</h2>
+      <h2 class="ic ic-seal">Tài khoản</h2>
       <p>Đặt mật khẩu để đăng nhập nhanh trên điện thoại. Link trong email có thể mở bằng trình duyệt khác (không phải Chrome), khi đó dùng mật khẩu sẽ tiện hơn.</p>
       <label for="newPass" style="width:100%">Mật khẩu mới<input id="newPass" type="password" autocomplete="new-password" minlength="8"></label>
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 28.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 29.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
