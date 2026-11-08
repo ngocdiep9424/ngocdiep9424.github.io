@@ -496,8 +496,8 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
   <section class="view toolsgrid" id="view-tools" hidden>
     <div class="page tool">
       <h2>Cài lên máy</h2>
-      <p id="installHint">Trên Chrome hoặc Edge, bấm biểu tượng cài đặt ở thanh địa chỉ. Trên iPhone, mở bằng Safari, bấm Chia sẻ rồi Thêm vào MH chính.</p>
-      <button class="btn" type="button" id="installBtn" hidden>Cài Vicky Assistant</button>
+      <p id="installHint">Máy tính: trên Chrome hoặc Edge, bấm biểu tượng cài đặt ở thanh địa chỉ. Điện thoại Android (OPPO, Samsung…): mở bằng Chrome, bấm ⋮ rồi “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”. iPhone: mở bằng Safari, bấm Chia sẻ rồi “Thêm vào MH chính”.</p>
+      <button class="btn" type="button" id="installBtn" hidden>Cài Thư Phòng lên máy này</button>
     </div>
     <div class="page tool">
       <h2>Cánh hoa bay</h2>
@@ -506,7 +506,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
     </div>
     <div class="page tool">
       <h2>Thông báo</h2>
-      <p id="pushHint">Bật trên từng máy để được nhắc cả khi đóng app. Trên iPhone cần cài app lên màn hình chính trước.</p>
+      <p id="pushHint">Bật trên từng máy để được nhắc cả khi đóng app. Điện thoại Android, nhất là OPPO: vào Cài đặt → Ứng dụng → Chrome, bật Thông báo và cho phép chạy nền, không hạn chế pin. iPhone: cài app lên màn hình chính trước.</p>
       <div class="actions"><button class="btn" type="button" id="pushBtn">Bật thông báo trên máy này</button><button class="btn quiet" type="button" id="pushTest">Gửi thử</button></div>
     </div>
     <div class="page tool">
@@ -529,12 +529,12 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
     </div>
     <div class="page tool">
       <h2>Tài khoản</h2>
-      <p>Đặt mật khẩu để đăng nhập trong app đã cài trên iPhone, vì link trong email sẽ mở bằng Safari.</p>
+      <p>Đặt mật khẩu để đăng nhập nhanh trên điện thoại. Link trong email có thể mở bằng trình duyệt khác (không phải Chrome), khi đó dùng mật khẩu sẽ tiện hơn.</p>
       <label for="newPass" style="width:100%">Mật khẩu mới<input id="newPass" type="password" autocomplete="new-password" minlength="8"></label>
       <div class="actions"><button class="btn" type="button" id="setPass">Đặt mật khẩu</button><button class="btn quiet" type="button" id="logoutBtn">Đăng xuất</button></div>
     </div>
     <p class="status" id="toolStatus" role="status"></p>
-    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 26.</p>
+    <p class="foot">Lịch Kyna tự cập nhật từ Gmail. Kyna có thể không gửi email khi hủy lớp, nên trước giờ dạy vẫn nên xem nhanh Teacher App. Phiên bản 27.</p>
   </section>
 </main>
 <div class="waves" aria-hidden="true"></div>
@@ -1854,6 +1854,12 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", function () { if (hadCtl) location.reload(); });
 }
 var installEvt = null;
+(function () {
+  var ua = navigator.userAgent || "", h = $("installHint");
+  if (!h) return;
+  if (/android/i.test(ua)) h.textContent = "Điện thoại Android (OPPO…): mở trang này bằng Chrome, bấm ⋮ ở góc trên bên phải rồi chọn “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”. Nếu thấy nút bên dưới thì bấm luôn.";
+  else if (/iphone|ipad|ipod/i.test(ua)) h.textContent = "iPhone/iPad: mở trang này bằng Safari, bấm nút Chia sẻ rồi chọn “Thêm vào MH chính”.";
+})();
 window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); installEvt = e; $("installBtn").hidden = false; });
 $("installBtn").addEventListener("click", async function () { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("installBtn").hidden = true; });
 $("pushTest").addEventListener("click", async function () {
@@ -1869,7 +1875,7 @@ $("pushTest").addEventListener("click", async function () {
 function b64u(s) { var p = (s + "===".slice((s.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/"), r = atob(p), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }
 $("pushBtn").addEventListener("click", async function () {
   var hint = $("pushHint");
-  if (!("Notification" in window) || !("PushManager" in window)) { hint.textContent = "Trình duyệt này chưa hỗ trợ thông báo. Trên iPhone, hãy cài app lên màn hình chính rồi mở từ đó."; return; }
+  if (!("Notification" in window) || !("PushManager" in window)) { hint.textContent = /android/i.test(navigator.userAgent) ? "Trình duyệt này chưa hỗ trợ thông báo. Hãy mở bằng Chrome, cài app ra màn hình chính rồi bật lại." : "Trình duyệt này chưa hỗ trợ thông báo. Trên iPhone, hãy cài app lên màn hình chính rồi mở từ đó."; return; }
   var perm = await Notification.requestPermission();
   if (perm !== "granted") { hint.textContent = "Thông báo đang bị chặn. Hãy cho phép thông báo cho trang này trong cài đặt trình duyệt."; return; }
   try {
