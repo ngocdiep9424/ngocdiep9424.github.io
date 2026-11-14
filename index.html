@@ -258,8 +258,13 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 .pglegend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
 .pgbox .pglegend { flex-wrap: nowrap; gap: 8px; font-size: 11px; white-space: nowrap; overflow: hidden; }
 .pgbox { padding: 7px 12px; gap: 4px; }
+.pglegend .pgl { background: none; border: 0; border-radius: 8px; color: inherit; font: inherit; padding: 4px 5px; cursor: pointer; }
+.pglegend .pgl[aria-pressed="true"] { background: var(--line); color: var(--ink); font-weight: 600; }
+.pglegend .pgl:focus-visible { outline: 2px solid var(--pg); outline-offset: 1px; }
+.pgdetail { border-top: 1px solid var(--line); padding-top: 8px; max-height: 60vh; overflow-y: auto; display: grid; gap: 6px; }
+.pgdh { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
 .pgbox .pgtop { font-size: 12px; }
-.pglegend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--pg); margin-right: 4px; vertical-align: -1px; }
+.pglegend span::before, .pglegend .pgl::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--pg); margin-right: 4px; vertical-align: -1px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .sw { border: 1px solid var(--line); background: var(--solid); border-radius: 16px; padding: 3px 10px 3px 8px; font-size: 13px; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .sw::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--c, transparent); border: 1px dashed var(--muted); }
@@ -588,7 +593,8 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 <div id="toasts" aria-live="polite"></div>
 
 <dialog id="planDlg" class="plandlg" aria-labelledby="pdTitle"><div class="pdhead"><div><b id="pdTitle">Giáo án</b><small id="pdSub"></small><div class="pdnav"><button class="link" type="button" id="pdPrev">‹ Buổi trước</button><button class="link" type="button" id="pdNext">Buổi sau ›</button></div></div><button class="btn quiet" type="button" id="pdClose">Đóng</button></div><div class="pdbody" id="pdBody"></div></dialog>
-<script src="/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.supabase || document.write('<script src="/supabase.js"><\/script>');</script>
 <script>
 var WD = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
 var WD_SHORT = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
@@ -613,7 +619,7 @@ var QUOTES = [
   ["有志者事竟成", "Yǒu zhì zhě shì jìng chéng", "Có chí thì nên."],
   ["活到老，学到老", "Huó dào lǎo, xué dào lǎo", "Còn sống là còn học."]
 ];
-var state = { lessons: [], classes: [], tasks: [], notes: [], settings: [], students: [], reviews: [], prompts: {}, planWeek: 1, tab: "tasks", armed: null, filter: "all", cat: "", day: null, editing: null };
+var state = { lessons: [], classes: [], tasks: [], notes: [], settings: [], students: [], reviews: [], prompts: {}, planWeek: 1, tab: "tasks", armed: null, filter: "all", cat: "", day: null, editing: null, pg: null };
 var db = null, fired = {}, audio = null;
 var SB_URL = "https://krirwvhilivfgxomocvy.supabase.co", SB_KEY = "sb_publishable_g2CsAuq3K6dD6JkAV0k9_w_uZd-sr6O", VAPID_PUBLIC = "BPOSjzjRfw7cMrlRrRvbcSilfAeyS-yqBk9BiWXTNqT0z09iuX-jAuIrddJ4k1Cn5Woar-wBqa8G5qHv_kfw64c";
 
@@ -1083,8 +1089,14 @@ function render() {
     items.forEach(function (x) { if (!x.cancelled && ymd(x.start) === todayStr) p[itemPg(x, now)]++; });
     state.tasks.forEach(function (t) { var g = taskPg(t, todayStr); if (t.due === todayStr || (g === "late") || (g === "doing")) p[g]++; });
     var tot = p.done + p.doing + p.todo + p.late;
+    var detail = "";
+    if (state.pg) {
+      var di = items.filter(function (x) { return !x.cancelled && ymd(x.start) === todayStr && itemPg(x, now) === state.pg; });
+      var dt = state.tasks.filter(function (t) { var g = taskPg(t, todayStr); return g === state.pg && (t.due === todayStr || g === "late" || g === "doing"); });
+      detail = '<div class="pgdetail" role="region" aria-label="Chi tiết: ' + PG[state.pg] + '"><div class="pgdh"><b>' + PG[state.pg] + " · " + (di.length + dt.length) + ' mục</b><button type="button" class="fbtn" data-pgclose="1">Đóng</button></div>' + (di.length + dt.length ? di.map(function (x) { return itemRow(x, now); }).join("") + sortTasks(dt, today).map(function (t) { return taskRow(t, today); }).join("") : '<p class="empty">Không có mục nào ở trạng thái này.</p>') + "</div>";
+    }
     var bar = ["done", "doing", "todo", "late"].map(function (k) { return p[k] ? '<i class="pg-' + k + '" style="width:' + (100 * p[k] / tot) + '%;background:var(--pg)" title="' + PG[k] + ": " + p[k] + '"></i>' : ""; }).join("");
-    return '<div class="pgbox"><div class="pgtop"><span>Hôm nay hoàn thành <b>' + p.done + "/" + tot + "</b></span><span>" + (tot ? Math.round(100 * p.done / tot) + "%" : "Chưa có gì") + '</span></div><div class="pgbar">' + bar + "</div>" + '<div class="pglegend">' + ["done", "doing", "todo", "late"].map(function (k) { return '<span class="pg-' + k + '">' + PG[k] + " " + p[k] + "</span>"; }).join("") + "</div></div>";
+    return '<div class="pgbox"><div class="pgtop"><span>Hôm nay hoàn thành <b>' + p.done + "/" + tot + "</b></span><span>" + (tot ? Math.round(100 * p.done / tot) + "%" : "Chưa có gì") + '</span></div><div class="pgbar">' + bar + "</div>" + '<div class="pglegend">' + ["done", "doing", "todo", "late"].map(function (k) { return '<button type="button" class="pgl pg-' + k + '" data-pg="' + k + '" aria-pressed="' + (state.pg === k) + '" aria-label="Xem chi tiết: ' + PG[k] + " " + p[k] + '">' + PG[k] + " " + p[k] + "</button>"; }).join("") + "</div>" + detail + "</div>";
   })();
 
   /* Trùng lịch */
@@ -1269,6 +1281,9 @@ document.addEventListener("click", async function (ev) {
   if (go) { showTab(go.dataset.tab || go.dataset.go); return; }
   var day = ev.target.closest(".wday");
   if (day) { state.day = day.dataset.day; render(); return; }
+  var pgb = ev.target.closest("[data-pg]");
+  if (pgb) { state.pg = state.pg === pgb.dataset.pg ? null : pgb.dataset.pg; render(); return; }
+  if (ev.target.closest("[data-pgclose]")) { state.pg = null; render(); return; }
   var f = ev.target.closest("[data-filter]");
   if (f) { state.filter = f.dataset.filter; render(); $("taskPage").scrollIntoView({ block: "start" }); return; }
   var cat = ev.target.closest("[data-cat]");
