@@ -1240,7 +1240,7 @@ function render() {
       if (c.plan && c.plan[n.session - 1]) info += " · " + planLabel(c.plan, n.session);
       for (var g = n.session; g <= total; g++) { var mm = milestone(g, total, c.plan); if (mm) { info += g === n.session ? " · " + mm : " · Còn " + (g - n.session) + " buổi đến " + mm.toLowerCase(); break; } }
     }
-    return '<div class="course"><div class="title">' + esc(c.name) + '</div>' + bar + '<div class="meta"><span>' + esc(info) + "</span>" + (c.level ? "<span>" + esc(c.level) + "</span>" : "") + (safeUrl(c.planUrl) ? '<a class="link" href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Giáo án</a>' : "") + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + "</div>" +
+    return '<div class="course"><div class="title">' + esc(c.name) + '</div>' + bar + '<div class="meta"><span>' + esc(info) + "</span>" + (c.level ? "<span>" + esc(c.level) + "</span>" : "") + (safeUrl(c.planUrl) && !lpKey(c) ? '<a class="link" href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Giáo án (Google Sheets)</a>' : "") + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + "</div>" +
       (lpKey(c) && n && n.session > 0 ? '<div class="actions" style="margin-top:4px">' + (n.session > 1 ? '<button class="btn quiet sm" type="button" data-act="showPlan" data-id="' + esc(c.id) + '" data-n="' + (n.session - 1) + '">Giáo án buổi vừa học</button>' : "") + '<button class="btn sm" type="button" data-act="showPlan" data-id="' + esc(c.id) + '" data-n="' + n.session + '">Xem giáo án buổi tới</button></div>' : "") + "</div>";
   }).join("") : '<p class="empty">Chưa có lớp cố định. Thêm lớp ở mục Lịch.</p>';
   var q = (state.search || "").trim().toLowerCase();
@@ -1580,6 +1580,7 @@ async function showPlan(classId, n) {
     });
     $("pdBody").innerHTML = html || '<p class="hint">Dòng giáo án của buổi này còn trống.</p>';
     if (doc.updatedAt) $("pdBody").innerHTML += '<p class="hint">Cập nhật từ Google Sheets lúc ' + esc(new Date(doc.updatedAt).toLocaleString("vi-VN")) + ".</p>";
+    if (safeUrl(c.planUrl)) $("pdBody").innerHTML += '<p class="hint"><a href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Mở bản gốc trên Google Sheets</a></p>';
   } catch (e) {
     $("pdBody").innerHTML = '<p class="hint">Không tải được giáo án: ' + esc(e.message || e) + "</p>";
   }
