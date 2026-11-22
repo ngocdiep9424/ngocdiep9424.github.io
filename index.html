@@ -271,6 +271,25 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 .sw:not(.none)::before { border: 0; }
 .sw[aria-pressed="true"] { border-color: var(--c, var(--accent)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c, var(--accent)) 35%, transparent); font-weight: 600; }
 .fbtn.cdot::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-right: 5px; vertical-align: 1px; }
+.att-box > summary { cursor: pointer; }
+.rs-wrap { overflow-x: auto; margin-top: 8px; }
+.rs { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rs th { background: #3f7a2b; color: #fff; font-weight: 600; padding: 6px 8px; text-align: left; white-space: nowrap; }
+.rs td { border-top: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+.rs td.n { text-align: center; white-space: nowrap; }
+.rs td:nth-child(2) { min-width: 130px; }
+.rs td:nth-child(7), .rs td:nth-child(8) { min-width: 190px; }
+.rs td:nth-child(4) { min-width: 96px; }
+.rs-vocab { margin-top: 8px; font-size: 13px; white-space: pre-wrap; line-height: 1.5; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; }
+.pill { display: inline-block; border-radius: 10px; padding: 1px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.ok { background: #d4ecd2; color: #2f7a35; }
+.pill.half { background: #fbeec5; color: #8a6510; }
+.pill.no { background: #b3261e; color: #fff; }
+.pill.off { background: #444; color: #fff; }
+.pill.none { background: transparent; color: var(--muted); border: 1px dashed var(--line); }
+.rv .num { display: flex; align-items: center; gap: 6px; max-width: 200px; }
+.rv .num input { width: 90px; }
+.fbtn.err[aria-pressed="true"] { background: var(--danger); border-color: var(--danger); color: #fff; }
 .att-box { margin: 8px 0 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--solid); }
 .att-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 0; border-top: 1px solid var(--line); font-size: 14px; }
 .att-row:first-child { border-top: 0; }
@@ -470,7 +489,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
           </div>
           <div class="two">
             <label for="cLessons">Số bài của giáo trình<input id="cLessons" type="number" min="1" max="80" placeholder="VD: 15"></label>
-            <label for="cPer">Mỗi bài học / giáo án<select id="cPer"><option value="">Không chia theo bài</option><option value="1">1 buổi</option><option value="2">2 buổi</option><option value="3">3 buổi</option><optgroup label="Giáo án YEYE có sẵn"><option value="hsk1">HSK 1 (36 buổi)</option><option value="hsk2">HSK 2 (36 buổi)</option><option value="hsk3">HSK 3 (42 buổi)</option><option value="yct3">YCT 3 (24 buổi)</option><option value="yct4">YCT 4 (24 buổi)</option><option value="yct5">YCT 5 (24 buổi)</option><option value="yct6">YCT 6 (24 buổi)</option></optgroup></select></label>
+            <label for="cPer">Mỗi bài học / giáo án<select id="cPer"><option value="">Không chia theo bài</option><option value="1">1 buổi</option><option value="2">2 buổi</option><option value="3">3 buổi</option><optgroup label="Giáo án YEYE có sẵn"><option value="hsk1">HSK 1 (36 buổi)</option><option value="hsk2">HSK 2 (36 buổi)</option><option value="hsk3">HSK 3 (42 buổi)</option><option value="yct1">YCT 1 (24 buổi)</option><option value="yct2">YCT 2 (24 buổi)</option><option value="yct3">YCT 3 (24 buổi)</option><option value="yct4">YCT 4 (24 buổi)</option><option value="yct5">YCT 5 (24 buổi)</option><option value="yct6">YCT 6 (24 buổi)</option></optgroup></select></label>
             <label for="cNextB">Buổi tới học bài số<input id="cNextB" type="number" min="1" max="80" placeholder="VD: 5"></label>
             <label for="cNextS">Buổi thứ mấy của bài<select id="cNextS"><option value="1">Buổi 1</option><option value="2">Buổi 2</option><option value="3">Buổi 3</option></select></label>
           </div>
@@ -496,19 +515,33 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
         <label for="rClass">Lớp<select id="rClass"></select></label>
         <label for="rDate">Ngày học<input id="rDate" type="date"></label>
       </div>
-      <p class="status" id="rLesson"></p>
+      <div class="head-row" style="margin-top:4px"><p class="status" id="rLesson" style="margin:0"></p><button class="btn quiet sm" type="button" id="rShowPlan" hidden>Xem giáo án buổi này</button></div>
       <div class="two" id="rProgress" style="align-items:end;margin-top:8px" hidden>
         <label for="rUpTo">Sau giờ học: đã học xong đến<select id="rUpTo"></select></label>
         <div><button class="btn quiet" type="button" id="rSaveUpTo">Lưu tiến độ</button></div>
       </div>
+      <details class="att-box" id="sessBox">
+        <summary><strong>Nội dung buổi học</strong> <span class="status" id="sessSum" style="margin:0"></span></summary>
+        <label for="sVocab" style="margin-top:8px">Từ vựng buổi này (mỗi dòng một từ, dạng: 家 jiā: nhà)<textarea id="sVocab" data-sf="vocab" maxlength="4000" placeholder="家 jiā: nhà&#10;学校 xuéxiào: trường học"></textarea></label>
+        <label for="sPattern">Mẫu câu, ngữ pháp<textarea id="sPattern" data-sf="pattern" maxlength="2000" placeholder="你叫什么名字？- 我叫…"></textarea></label>
+        <label for="sHwGiven">Bài tập về nhà giao hôm nay<input id="sHwGiven" data-sf="hwGiven" maxlength="300" placeholder="VD: Chép mỗi từ 1 dòng, làm bài 1-3 SBT trang 12"></label>
+        <div class="two">
+          <label for="sMaxTest">Điểm tối đa bài kiểm tra<input id="sMaxTest" data-sf="maxTest" type="number" min="0" max="1000" placeholder="VD: 20"></label>
+          <label for="sMaxHw">Điểm tối đa BTVN<input id="sMaxHw" data-sf="maxHw" type="number" min="0" max="1000" placeholder="VD: 10"></label>
+        </div>
+      </details>
       <div class="att-box">
         <div class="head-row"><h3 style="margin:0">Điểm danh</h3><div class="actions"><span class="status" id="attSum" style="margin:0"></span><button class="btn quiet sm" type="button" id="attAll">Cả lớp có mặt</button></div></div>
         <div id="attList"></div>
       </div>
       <div class="filters rv-people" id="rStudents"></div>
       <div id="reviewList"></div>
-      <div class="actions" style="margin-top:10px"><button class="btn quiet" type="button" id="rCopyAll">Sao chép tất cả học viên có mặt</button></div>
+      <div class="actions" style="margin-top:10px"><button class="btn quiet" type="button" id="rCopyAll">Sao chép nhận xét cả lớp</button></div>
       <p class="status" id="rStatus" role="status"></p>
+      <div class="att-box" id="resultBox">
+        <div class="head-row"><h3 style="margin:0">Bảng kết quả buổi học</h3><div class="actions"><button class="btn quiet sm" type="button" id="rCopyTable">Sao chép bảng (dán vào Google Sheets)</button></div></div>
+        <div id="resultTable"></div>
+      </div>
     </div>
     </div>
     <div class="col">
@@ -605,9 +638,34 @@ var REPEATS = { daily: "Hằng ngày", weekly: "Hằng tuần", monthly: "Hằng
 var SOURCES = { kyna: "Kyna", rieng: "YEYE", trungtam: "GO" };
 var ATTEND = { co: ["Có mặt", "#4f9d74"], muon: ["Đi muộn", "#d4a23a"], phep: ["Vắng có phép", "#5b7fa6"], khong: ["Vắng không phép", "#d9534f"] };
 var HW = { du: ["Làm đủ", "con làm đủ"], chua: ["Chưa làm hết", "con làm chưa hết"], khongmang: ["Không mang", "hôm nay con không mang"], khonglam: ["Không làm", "con chưa làm"] };
-var SKILLS = { tuvung: "Từ vựng", phatam: "Phát âm, thanh điệu", nguphap: "Ngữ pháp, mẫu câu", nghe: "Nghe hiểu", noi: "Nói, phản xạ", doc: "Đọc", viet: "Viết chữ Hán" };
+var SKILLS = { tuvung: "Từ vựng", pinyin: "Đọc, viết phiên âm", phatam: "Phát âm, thanh điệu", nguphap: "Ngữ pháp, mẫu câu", nghe: "Nghe hiểu", noi: "Nói, phản xạ", doc: "Đọc", viet: "Viết chữ Hán" };
 var LEVELS = { tot: "Tốt", kha: "Khá", can: "Cần cố gắng" };
 var ATT = { chamchu: ["Chăm chú", 1], tichcuc: ["Tích cực phát biểu", 1], hanghai: ["Hăng hái hoạt động", 1], tutin: ["Tự tin", 1], tienbo: ["Tiến bộ hơn buổi trước", 1], lephep: ["Lễ phép", 1], rutre: ["Còn rụt rè", 0], noichuyen: ["Nói chuyện riêng", 0], taptrung: ["Chưa tập trung", 0], dimuon: ["Đi học muộn", 0] };
+/* Đánh giá bài tập về nhà chi tiết cho lớp tiếng Trung. */
+var HW_TABLE = { du: "Đã làm", chua: "Làm chưa hết", khongmang: "Không mang", khonglam: "Không làm" };
+var HWQ = { chuhan: "Chữ Hán (nét, thứ tự nét)", pinyin: "Phiên âm (âm đầu, vần)", thanh: "Thanh điệu (dấu thanh)", nghia: "Nghĩa, ngữ pháp", trinhbay: "Trình bày, sạch đẹp" };
+/* Lỗi chia theo nhóm để chọn nhanh; nhóm phiên âm chi tiết vì lớp YCT chấm phiên âm nhiều. */
+var HWERR_GROUPS = [
+  ["Chữ Hán", { sainet: "Viết sai, thiếu nét", thutu: "Sai thứ tự nét", botho: "Nhầm bộ thủ", nguoc: "Viết ngược chữ", candoi: "Chữ chưa cân đối" }],
+  ["Phiên âm", { amdau: "Nhầm âm đầu (b/p, d/t, z/zh, j/q/x)", van: "Nhầm vần (an/ang, en/eng, in/ing)", uu: "Nhầm ü/u, quên bỏ chấm ü", thieuthanh: "Thiếu dấu thanh", saithanh: "Sai dấu thanh", vitri: "Đặt dấu thanh sai vị trí", biendieu: "Quên biến điệu (不, 一, thanh 3)", vietpinyin: "Viết sai chữ cái phiên âm" }],
+  ["Câu, bài", { trattu: "Sai trật tự câu", luongtu: "Thiếu, sai lượng từ", nghia: "Hiểu sai nghĩa", botrong: "Bỏ trống câu" }]
+];
+var HWERR = {}; HWERR_GROUPS.forEach(function (g) { Object.assign(HWERR, g[1]); });
+var CHEP = { co: "Đã chép từ vựng", chua: "Chưa chép từ vựng" };
+var HWQ_TXT = { chuhan: "viết chữ Hán", pinyin: "phiên âm", thanh: "dấu thanh", nghia: "nghĩa và ngữ pháp", trinhbay: "trình bày" };
+var OVERALL = { tot: "Rất tốt", kha: "Tốt", tb: "Khá", can: "Cần cố gắng" };
+/* Câu mở đầu theo mức tổng quan; mỗi học viên lấy một câu khác nhau để lời nhắn không lặp. {Con}/{con} đổi thành Em/em khi gửi trực tiếp cho học viên. */
+var OPEN = {
+  tot: ["Hôm nay {con} học rất tốt, cô rất vui!", "Buổi học hôm nay {con} thể hiện rất xuất sắc.", "{Con} có một buổi học thật tuyệt, cô khen {con} nhiều lắm!"],
+  kha: ["Hôm nay {con} học tốt và khá tập trung.", "Buổi học hôm nay {con} theo bài tốt.", "{Con} có một buổi học tốt, nắm được phần lớn nội dung bài."],
+  tb: ["Hôm nay {con} học khá, vẫn còn vài phần cần luyện thêm.", "Buổi học hôm nay {con} theo được bài, một số phần cần ôn thêm ở nhà.", "{Con} học khá ổn, cô mong {con} cố thêm một chút nữa."],
+  can: ["Hôm nay {con} chưa theo kịp bài như mọi khi, cần cố gắng thêm.", "Buổi học hôm nay {con} còn gặp khó ở một số phần, cô sẽ kèm thêm cho {con}.", "Hôm nay {con} cần cố gắng hơn, cô tin buổi sau {con} sẽ làm tốt hơn."]
+};
+var EXTRA = {
+  tienbo: "{Con} tiến bộ rõ so với buổi trước.", docto: "{Con} đọc bài to, rõ ràng.", vietdep: "Chữ Hán của {con} ngày càng ngay ngắn, đẹp hơn.", amchuan: "{Con} phát âm và thanh điệu khá chuẩn.", nhotu: "{Con} nhớ từ vựng nhanh.", giupban: "{Con} biết giúp đỡ các bạn trong lớp.",
+  luyenviet: "{Con} nên luyện viết chữ Hán mỗi ngày khoảng 10 phút.", ngheaudio: "{Con} nên nghe lại audio bài học để luyện phát âm.", mangsach: "{Con} nhớ mang đủ sách vở khi đi học nhé.", met: "Hôm nay {con} hơi mệt nên chưa tập trung như mọi khi."
+};
+var EXTRA_LABEL = { tienbo: "Tiến bộ", docto: "Đọc to rõ", vietdep: "Chữ đẹp hơn", amchuan: "Phát âm chuẩn", nhotu: "Nhớ từ nhanh", giupban: "Giúp bạn", luyenviet: "Nên luyện viết", ngheaudio: "Nên nghe audio", mangsach: "Mang đủ sách", met: "Hơi mệt" };
 var SLOTS = { sang: "Sáng", chieu: "Chiều", toi: "Tối" };
 var FILTERS = { all: "Tất cả", today: "Hôm nay", soon: "Sắp tới", late: "Quá hạn", done: "Đã xong" };
 var QUOTES = [
@@ -619,7 +677,7 @@ var QUOTES = [
   ["有志者事竟成", "Yǒu zhì zhě shì jìng chéng", "Có chí thì nên."],
   ["活到老，学到老", "Huó dào lǎo, xué dào lǎo", "Còn sống là còn học."]
 ];
-var state = { lessons: [], classes: [], tasks: [], notes: [], settings: [], students: [], reviews: [], prompts: {}, planWeek: 1, tab: "tasks", armed: null, filter: "all", cat: "", day: null, editing: null, pg: null };
+var state = { lessons: [], classes: [], tasks: [], notes: [], settings: [], students: [], reviews: [], sessions: [], prompts: {}, planWeek: 1, tab: "tasks", armed: null, filter: "all", cat: "", day: null, editing: null, pg: null };
 var db = null, fired = {}, audio = null;
 var SB_URL = "https://krirwvhilivfgxomocvy.supabase.co", SB_KEY = "sb_publishable_g2CsAuq3K6dD6JkAV0k9_w_uZd-sr6O", VAPID_PUBLIC = "BPOSjzjRfw7cMrlRrRvbcSilfAeyS-yqBk9BiWXTNqT0z09iuX-jAuIrddJ4k1Cn5Woar-wBqa8G5qHv_kfw64c";
 
@@ -1182,7 +1240,8 @@ function render() {
       if (c.plan && c.plan[n.session - 1]) info += " · " + planLabel(c.plan, n.session);
       for (var g = n.session; g <= total; g++) { var mm = milestone(g, total, c.plan); if (mm) { info += g === n.session ? " · " + mm : " · Còn " + (g - n.session) + " buổi đến " + mm.toLowerCase(); break; } }
     }
-    return '<div class="course"><div class="title">' + esc(c.name) + '</div>' + bar + '<div class="meta"><span>' + esc(info) + "</span>" + (c.level ? "<span>" + esc(c.level) + "</span>" : "") + (safeUrl(c.planUrl) ? '<a class="link" href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Giáo án</a>' : "") + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + "</div></div>";
+    return '<div class="course"><div class="title">' + esc(c.name) + '</div>' + bar + '<div class="meta"><span>' + esc(info) + "</span>" + (c.level ? "<span>" + esc(c.level) + "</span>" : "") + (safeUrl(c.planUrl) ? '<a class="link" href="' + esc(c.planUrl) + '" target="_blank" rel="noopener">Giáo án</a>' : "") + (c.example ? '<span class="chip ex">Ví dụ</span>' : "") + "</div>" +
+      (lpKey(c) && n && n.session > 0 ? '<div class="actions" style="margin-top:4px">' + (n.session > 1 ? '<button class="btn quiet sm" type="button" data-act="showPlan" data-id="' + esc(c.id) + '" data-n="' + (n.session - 1) + '">Giáo án buổi vừa học</button>' : "") + '<button class="btn sm" type="button" data-act="showPlan" data-id="' + esc(c.id) + '" data-n="' + n.session + '">Xem giáo án buổi tới</button></div>' : "") + "</div>";
   }).join("") : '<p class="empty">Chưa có lớp cố định. Thêm lớp ở mục Lịch.</p>';
   var q = (state.search || "").trim().toLowerCase();
   var people = buildStudents(state.lessons, state.students, state.classes, now);
@@ -1380,7 +1439,7 @@ $("csvBtn").addEventListener("click", function () {
 });
 $("backupBtn").addEventListener("click", function () {
   var strip = function (r) { return r; };
-  saveFile("vicky-sao-luu.json", JSON.stringify({ app: "vicky-assistant", savedAt: new Date().toISOString(), lessons: state.lessons.map(strip), classes: state.classes, tasks: state.tasks, notes: state.notes, students: state.students, reviews: state.reviews }, null, 1), "Đã tải bản sao lưu.");
+  saveFile("vicky-sao-luu.json", JSON.stringify({ app: "vicky-assistant", savedAt: new Date().toISOString(), lessons: state.lessons.map(strip), classes: state.classes, tasks: state.tasks, notes: state.notes, students: state.students, reviews: state.reviews, sessions: state.sessions }, null, 1), "Đã tải bản sao lưu.");
 });
 $("restoreFile").addEventListener("change", async function (e) {
   var file = e.target.files[0];
@@ -1389,7 +1448,7 @@ $("restoreFile").addEventListener("change", async function (e) {
   try {
     var data = JSON.parse(await file.text()), count = 0;
     if (data.app !== "vicky-assistant") { setTool("Tệp này không phải bản sao lưu của Vicky Assistant. Hãy gửi tệp cho Claude để chuyển đổi.", true); return; }
-    var names = ["lessons", "classes", "tasks", "notes", "students", "reviews"];
+    var names = ["lessons", "classes", "tasks", "notes", "students", "reviews", "sessions"];
     for (var n = 0; n < names.length; n++) {
       var rows = data[names[n]] || [];
       for (var r = 0; r < rows.length; r++) {
@@ -1452,8 +1511,8 @@ function parseTimes(txt) {
   return Object.keys(out).length ? out : null;
 }
 function timesText(t) { return t ? Object.keys(t).map(function (d) { return WD_SHORT[d] + " " + t[d][0] + "-" + t[d][1]; }).join(", ") : ""; }
-/* Giáo án YEYE dựng sẵn từ TeachingPlan (tab hsk1, hsk2, hsk3, yct3–yct6). */
-var PLAN_TEMPLATES = {"hsk1": ["语音、声调、韵母 (Tổng quan Ngữ âm & Quy tắc biến điệu)", "Bài 1 · Buổi 1 · AI小语，你好！ – Từ vựng & Ngữ pháp: Chào hỏi, xưng hô", "Bài 1 · Buổi 2 · AI小语，你好！ – Bài khóa & Luyện nói: 我的问候", "Bài 2 · Buổi 1 · 我叫李文 – Từ vựng & Ngữ pháp: hỏi tên, giới thiệu bản thân", "Bài 2 · Buổi 2 · 我叫李文 – Bài khóa & Luyện nói: 自我介绍与认识新朋友", "Bài 3 · Buổi 1 · 我是中国人 – Từ vựng & Ngữ pháp: Quốc tịch và giới thiệu người khác", "Bài 3 · Buổi 2 · 我是中国人 – Bài khóa & Luyện nói: 我的国籍和朋友", "Bài 4 · Buổi 1 · 我有两个孩子 – Từ vựng & Ngữ pháp: Gia đình và số lượng", "Bài 4 · Buổi 2 · 我有两个孩子 – Bài khóa & Luyện nói: 我的家", "Bài 5 · Buổi 1 · 今天我休息 – Từ vựng & Ngữ pháp: Ngày nghỉ và sinh hoạt", "Bài 5 · Buổi 2 · 今天我休息 – Bài khóa & Luyện nói: 我的休息日", "Bài 6 · Buổi 1 · 你的手机号是多少？ – Từ vựng & Ngữ pháp: Số điện thoại và liên lạc", "Bài 6 · Buổi 2 · 你的手机号是多少？ – Bài khóa & Luyện nói: 我的联系方式", "Bài 7 · Buổi 1 · 我晚上六点半下班 – Từ vựng & Ngữ pháp: Giờ giấc và tan làm", "Bài 7 · Buổi 2 · 我晚上六点半下班 – Bài khóa & Luyện nói: 我的时间表", "Bài 8 · Buổi 1 · 我爸爸也在医院工作 – Từ vựng & Ngữ pháp: Nghề nghiệp và nơi làm việc", "Bài 8 · Buổi 2 · 我爸爸也在医院工作 – Bài khóa & Luyện nói: 我的家人和工作", "Ôn tập giữa khóa (Bài 1 – Bài 8)", "Kiểm tra giữa khóa (Bài 1 – Bài 8)", "Bài 9 · Buổi 1 · 明天上午在学校学习 – Từ vựng & Ngữ pháp: Thời gian, địa điểm học tập", "Bài 9 · Buổi 2 · 明天上午在学校学习 – Bài khóa & Luyện nói: 我的学习安排", "Bài 10 · Buổi 1 · 这儿的苹果真便宜！ – Từ vựng & Ngữ pháp: Mua sắm và giá cả", "Bài 10 · Buổi 2 · 这儿的苹果真便宜！ – Bài khóa & Luyện nói: 我去买水果", "Bài 11 · Buổi 1 · 我读大学呢 – Từ vựng & Ngữ pháp: Đại học và học tập", "Bài 11 · Buổi 2 · 我读大学呢 – Bài khóa & Luyện nói: 我的大学生活", "Bài 12 · Buổi 1 · 昨天下雪了 – Từ vựng & Ngữ pháp: Thời tiết và sự việc đã xảy ra", "Bài 12 · Buổi 2 · 昨天下雪了 – Bài khóa & Luyện nói: 昨天和今天的天气", "Bài 13 · Buổi 1 · 请给我一杯茶 – Từ vựng & Ngữ pháp: Đồ uống và yêu cầu lịch sự", "Bài 13 · Buổi 2 · 请给我一杯茶 – Bài khóa & Luyện nói: 在饮品店", "Bài 14 · Buổi 1 · 我看了一个电影 – Từ vựng & Ngữ pháp: Xem phim và kể chuyện đã làm", "Bài 14 · Buổi 2 · 我看了一个电影 – Bài khóa & Luyện nói: 我昨天做了什么", "Bài 15 · Buổi 1 · 大兴机场见！ – Từ vựng & Ngữ pháp: Sân bay, đi lại và hẹn gặp", "Bài 15 · Buổi 2 · 大兴机场见！ – Bài khóa & Luyện nói: 我们在机场见", "Ôn tập cuối khóa HSK 1 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 15)", "Ôn tập cuối khóa HSK 1 (Phần 2: Luyện đề thi mô phỏng HSK 1)", "Kiểm tra cuối khóa HSK 1 & Tổng kết"], "hsk2": ["Bài 1 · Buổi 1 · 她请我们吃了北京烤鸭 – Từ vựng & Ngữ pháp: câu kiêm ngữ 请/让/叫, 吧 phỏng đoán, 是……的", "Bài 1 · Buổi 2 · 她请我们吃了北京烤鸭 – Bài khóa & Luyện khẩu ngữ: 第一次来北京", "Bài 2 · Buổi 1 · 还是打车去北大吧 – Từ vựng & Ngữ pháp: 还是……吧, 多 ước lượng, định ngữ V + 的 + N", "Bài 2 · Buổi 2 · 还是打车去北大吧 – Bài khóa & Luyện khẩu ngữ: 我怎么去学校", "Bài 3 · Buổi 1 · 我想去西安旅游 – Từ vựng & Ngữ pháp: bổ ngữ kết quả, lặp lại động từ", "Bài 3 · Buổi 2 · 我想去西安旅游 – Bài khóa & Luyện khẩu ngữ: 我的旅游计划", "Bài 4 · Buổi 1 · 你穿红色的很好看 – Từ vựng & Ngữ pháp: trợ từ 过, 因为……所以……, cụm chữ 的", "Bài 4 · Buổi 2 · 你穿红色的很好看 – Bài khóa & Luyện khẩu ngữ: 我的衣服", "Bài 5 · Buổi 1 · 第一次去中国朋友家 – Từ vựng & Ngữ pháp: bổ ngữ xu hướng đơn, 都……了", "Bài 5 · Buổi 2 · 第一次去中国朋友家 – Bài khóa & Luyện khẩu ngữ: 第一次去朋友家", "Bài 6 · Buổi 1 · 小雪，生日快乐！ – Từ vựng & Ngữ pháp: lặp lại tính từ, 什么的, trợ từ 地", "Bài 6 · Buổi 2 · 小雪，生日快乐！ – Bài khóa & Luyện nói: 我的生日", "Bài 7 · Buổi 1 · 他篮球打得很好 – Từ vựng & Ngữ pháp: 一……就……, bổ ngữ trạng thái V + 得 + Adj", "Bài 7 · Buổi 2 · 他篮球打得很好 – Bài khóa & Luyện nói: 我的运动", "Bài 8 · Buổi 1 · 虽然你忘了，但是我记得 – Từ vựng & Ngữ pháp: câu so sánh 比 / 没有, 虽然……但是……", "Bài 8 · Buổi 2 · 虽然你忘了，但是我记得 – Bài khóa & Luyện nói: 一次考试", "Ôn tập giữa khóa HSK 2 (Phần 1: Bài 1 – Bài 4)", "Ôn tập giữa khóa HSK 2 (Phần 2: Bài 5 – Bài 8)", "Kiểm tra giữa khóa HSK 2 (Bài 1 – Bài 8)", "Bài 9 · Buổi 1 · 我去买杯奶茶 – Từ vựng & Ngữ pháp: 离, 跟……一样, bổ ngữ thời lượng", "Bài 9 · Buổi 2 · 我去买杯奶茶 – Bài khóa & Luyện nói: 累了，我去买杯奶茶", "Bài 10 · Buổi 1 · 就要考试了 – Từ vựng & Ngữ pháp: 要/快要/就要……了, câu hỏi 还是, câu vị ngữ chủ-vị", "Bài 10 · Buổi 2 · 就要考试了 – Bài khóa & Luyện nói: 我的考试", "Bài 11 · Buổi 1 · 我最喜欢吃中国菜 – Từ vựng & Ngữ pháp: phó từ 最, trợ từ 着", "Bài 11 · Buổi 2 · 我最喜欢吃中国菜 – Bài khóa & Luyện nói: 我最喜欢的菜", "Bài 12 · Buổi 1 · 这里比北京冷多了 – Từ vựng & Ngữ pháp: so sánh 比 (4)(5)(6)", "Bài 12 · Buổi 2 · 这里比北京冷多了 – Bài khóa & Luyện nói: 比较两个城市的天气", "Bài 13 · Buổi 1 · 我们都爱上中文课 – Từ vựng & Ngữ pháp: song tân ngữ, so sánh 有 / 跟……一样, 越……越……", "Bài 13 · Buổi 2 · 我们都爱上中文课 – Bài khóa & Luyện nói: 我的中文课", "Bài 14 · Buổi 1 · 一个人过年多没意思啊 – Từ vựng & Ngữ pháp: 多……啊, câu tồn hiện, bổ ngữ xu hướng kép", "Bài 14 · Buổi 2 · 一个人过年多没意思啊 – Bài khóa & Luyện nói: 我家的春节", "Bài 15 · Buổi 1 · 我想再去一次中国 – Từ vựng & Ngữ pháp: bổ ngữ động lượng, 再 / 又, câu chữ 有 (2)", "Bài 15 · Buổi 2 · 我想再去一次中国 – Bài khóa & Luyện nói: 我想再去一次……", "Ôn tập cuối khóa HSK 2 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 15)", "Ôn tập cuối khóa HSK 2 (Phần 2: Luyện đề thi mô phỏng)", "Kiểm tra cuối khóa HSK 2 & Tổng kết"], "hsk3": ["Bài 1 · Buổi 1 · 我们去机场接你们 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 1 · Buổi 2 · 我们去机场接你们 – Bài khóa & Luyện khẩu ngữ: 我去机场接朋友", "Bài 2 · Buổi 1 · 你们想吃什么就点什么 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 2 · Buổi 2 · 你们想吃什么就点什么 – Bài khóa & Luyện khẩu ngữ: 我在饭馆点菜", "Bài 3 · Buổi 1 · 这个小区挺好的 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 3 · Buổi 2 · 这个小区挺好的 – Bài khóa & Luyện khẩu ngữ: 我住的小区", "Bài 4 · Buổi 1 · 这家宾馆跟别的都不一样 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 4 · Buổi 2 · 这家宾馆跟别的都不一样 – Bài khóa & Luyện khẩu ngữ: 我比较的两家宾馆", "Bài 5 · Buổi 1 · 这样的照片才好看 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 5 · Buổi 2 · 这样的照片才好看 – Bài khóa & Luyện khẩu ngữ: 我喜欢的一张照片", "Bài 6 · Buổi 1 · 高铁上还可以点外卖 – Từ vựng & Ngữ pháp: 该……了, 如果……就……, 越来越", "Bài 6 · Buổi 2 · 高铁上还可以点外卖 – Bài khóa & Luyện khẩu ngữ: 我的一次旅行", "Bài 7 · Buổi 1 · 那条裙子比短裤更好看 – Từ vựng & Ngữ pháp: 着 trong câu liên động, 不比, 极了, 不但……而且……", "Bài 7 · Buổi 2 · 那条裙子比短裤更好看 – Bài khóa & Luyện khẩu ngữ: 我的购物经历", "Bài 8 · Buổi 1 · 今天我出院了 – Từ vựng & Ngữ pháp: 下去, từ li hợp, bổ ngữ thời lượng, 以前/以后", "Bài 8 · Buổi 2 · 今天我出院了 – Bài khóa & Luyện khẩu ngữ: 一次生病的经历", "Bài 9 · Buổi 1 · 打不好没关系 – Từ vựng & Ngữ pháp: 为了……, bổ ngữ khả năng, 越A越B", "Bài 9 · Buổi 2 · 打不好没关系 – Bài khóa & Luyện khẩu ngữ: 我喜欢的运动", "Ôn tập giữa khóa (Bài 1 – Bài 9)", "Kiểm tra giữa khóa (Bài 1 – Bài 9)", "Bài 10 · Buổi 1 · 你明天再把书还给我 – Từ vựng & Ngữ pháp: Câu chữ 把 (1), 在……上/中/下, Câu chữ 把 (2)", "Bài 10 · Buổi 2 · 你明天再把书还给我 – Bài khóa & Luyện khẩu ngữ: 我的学习方法", "Bài 11 · Buổi 1 · 看来我没办法解决这个问题 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 11 · Buổi 2 · 看来我没办法解决这个问题 – Bài khóa & Luyện khẩu ngữ: 我解决的一件事", "Bài 12 · Buổi 1 · 这个季节天气变化很快 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 12 · Buổi 2 · 这个季节天气变化很快 – Bài khóa & Luyện khẩu ngữ: 我家乡四季的天气", "Bài 13 · Buổi 1 · 我的新邻居来自英国 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 13 · Buổi 2 · 我的新邻居来自英国 – Bài khóa & Luyện khẩu ngữ: 我的新邻居", "Bài 14 · Buổi 1 · 这本书被别人借走了 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 14 · Buổi 2 · 这本书被别人借走了 – Bài khóa & Luyện khẩu ngữ: 我的书被借走了", "Bài 15 · Buổi 1 · 我是半个南京人 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 15 · Buổi 2 · 我是半个南京人 – Bài khóa & Luyện khẩu ngữ: 我的家乡", "Bài 16 · Buổi 1 · 我听说有的熊猫出国了 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 16 · Buổi 2 · 我听说有的熊猫出国了 – Bài khóa & Luyện khẩu ngữ: 我听说的熊猫", "Bài 17 · Buổi 1 · 我要多向认真的人学习 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 17 · Buổi 2 · 我要多向认真的人学习 – Bài khóa & Luyện khẩu ngữ: 我想向他学习", "Bài 18 · Buổi 1 · 我学会了包饺子 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 18 · Buổi 2 · 我学会了包饺子 – Bài khóa & Luyện khẩu ngữ: 我学会做一道菜", "Ôn tập cuối khóa HSK 3.0 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 9)", "Ôn tập cuối khóa HSK 3.0 (Phần 2: Từ vựng & Ngữ pháp Bài 10 – 18)", "Ôn tập cuối khóa HSK 3.0 (Phần 3: Luyện đề thi mô phỏng HSK 3)", "Kiểm tra cuối khóa HSK 3.0 & Tổng kết"], "yct3": ["Bài 1 · Buổi 1 · 我三年级", "Bài 1 · Buổi 2 · 我三年级", "Bài 2 · Buổi 1 · 你喜欢什么运动？", "Bài 2 · Buổi 2 · 你喜欢什么运动？", "Bài 3 · Buổi 1 · 我在画画儿呢", "Bài 3 · Buổi 2 · 我在画画儿呢", "Bài 4 · Buổi 1 · 喂，您好！", "Bài 4 · Buổi 2 · 喂，您好！", "Bài 5 · Buổi 1 · 再吃几个", "Bài 5 · Buổi 2 · 再吃几个", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 我能自己穿", "Bài 6 · Buổi 2 · 我能自己穿", "Bài 7 · Buổi 1 · 生日快乐！", "Bài 7 · Buổi 2 · 生日快乐！", "Bài 8 · Buổi 1 · 下雪了", "Bài 8 · Buổi 2 · 下雪了", "Bài 9 · 笑一笑！", "Bài 10 · 谁跑得快？", "Bài 11 · 妈妈把糖给弟弟了", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct4": ["Bài 1 · Buổi 1 · 我们有一百零八个学生", "Bài 1 · Buổi 2 · 我们有一百零八个学生", "Bài 2 · Buổi 1 · 你学汉语多长时间了？", "Bài 2 · Buổi 2 · 你学汉语多长时间了？", "Bài 3 · Buổi 1 · 早上八点半就开门", "Bài 3 · Buổi 2 · 早上八点半就开门", "Bài 4 · Buổi 1 · 我感冒了", "Bài 4 · Buổi 2 · 我感冒了", "Bài 5 · Buổi 1 · 把门关上", "Bài 5 · Buổi 2 · 把门关上", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 你去过我们的新教室吗？", "Bài 6 · Buổi 2 · 你去过我们的新教室吗？", "Bài 7 · Buổi 1 · 你们每天怎么去学校？", "Bài 7 · Buổi 2 · 你们每天怎么去学校？", "Bài 8 · Buổi 1 · 要下雨了", "Bài 8 · Buổi 2 · 要下雨了", "Bài 9 · 你是什么时候去的？", "Bài 10 · 爸爸为什么不休息？", "Bài 11 · 它长得很快", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct5": ["Bài 1 · Buổi 1 · 你对中国功夫感兴趣吗？", "Bài 1 · Buổi 2 · 你对中国功夫感兴趣吗？", "Bài 2 · Buổi 1 · 兔子更可爱", "Bài 2 · Buổi 2 · 兔子更可爱", "Bài 3 · Buổi 1 · 电梯坏了", "Bài 3 · Buổi 2 · 电梯坏了", "Bài 4 · Buổi 1 · 每个人都有自己的习惯", "Bài 4 · Buổi 2 · 每个人都有自己的习惯", "Bài 5 · Buổi 1 · 他们多么年轻啊！", "Bài 5 · Buổi 2 · 他们多么年轻啊！", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · 站着的还是坐着的？", "Bài 7 · 我经常去体育馆锻炼身体", "Bài 8 · 北京一共有四个季节", "Bài 9 · 冰激凌既好吃又便宜", "Bài 10 · 你的汉语会越来越好", "Bài 11 · 来一盘羊肉饺子", "Bài 12 · 坐飞机或者坐火车都可以", "Bài 13 · 我先帮你补牙", "Bài 14 · 我们打算去中国旅游", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct6": ["Bài 1 · Buổi 1 · 我属猴", "Bài 1 · Buổi 2 · 我属猴", "Bài 2 · Buổi 1 · 他数学好极了", "Bài 2 · Buổi 2 · 他数学好极了", "Bài 3 · Buổi 1 · 小鸟正在唱歌", "Bài 3 · Buổi 2 · 小鸟正在唱歌", "Bài 4 · Buổi 1 · 你打扫一下房间好吗？", "Bài 4 · Buổi 2 · 你打扫一下房间好吗？", "Bài 5 · Buổi 1 · 你太马虎了！", "Bài 5 · Buổi 2 · 你太马虎了！", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 他们不是双胞胎", "Bài 6 · Buổi 2 · 他们不是双胞胎", "Bài 7 · Buổi 1 · 小鱼被小猫吃了", "Bài 7 · Buổi 2 · 小鱼被小猫吃了", "Bài 8 · 他家搬到动物园附近了", "Bài 9 · 月亮离我们多远", "Bài 10 · 我用帽子还你的盘子", "Bài 11 · 我爱吃辣的", "Bài 12 · 有的熊猫一直睡觉", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"]};
+/* Giáo án YEYE dựng sẵn từ TeachingPlan (tab hsk1, hsk2, hsk3, yct1 = gc6, yct2 = gc3, yct3–yct6). */
+var PLAN_TEMPLATES = {"yct1": ["Ngữ âm · Buổi 1 · 语音、声调、韵母", "Ngữ âm · Buổi 2 · 语音、声调、韵母", "Ngữ âm · Buổi 3 · 语音、声调、韵母", "Bài 1 · 你好！", "Bài 2 · 你叫什么？", "Bài 3 · 他是谁？", "Bài 4 · 我家有四口人", "Bài 5 · 我6岁", "Bài 6 · Buổi 1 · 你的个子真高！", "Bài 6 · Buổi 2 · 你的个子真高！", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 7 · Buổi 1 · 这是谁的狗？", "Bài 7 · Buổi 2 · 这是谁的狗？", "Bài 8 · Buổi 1 · 我去商店", "Bài 8 · Buổi 2 · 我去商店", "Bài 9 · Buổi 1 · 今天星期几？", "Bài 9 · Buổi 2 · 今天星期几？", "Bài 10 · 现在几点？", "Bài 11 · Buổi 1 · 你吃什么？", "Bài 11 · Buổi 2 · 你吃什么？", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct2": ["Bài 1 · Buổi 1 · 我可以坐这儿吗？", "Bài 1 · Buổi 2 · 我可以坐这儿吗？", "Bài 2 · Buổi 1 · 你早上几点起床？", "Bài 2 · Buổi 2 · 你早上几点起床？", "Bài 3 · Buổi 1 · 你的铅笔呢？", "Bài 3 · Buổi 2 · 你的铅笔呢？", "Bài 4 · Buổi 1 · 书包里有两本书", "Bài 4 · Buổi 2 · 书包里有两本书", "Bài 5 · Buổi 1 · 你会不会做饭？", "Bài 5 · Buổi 2 · 你会不会做饭？", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 包子多少钱一个？", "Bài 6 · Buổi 2 · 包子多少钱一个？", "Bài 7 · Buổi 1 · 今天比昨天热", "Bài 7 · Buổi 2 · 今天比昨天热", "Bài 8 · Buổi 1 · 马丁比我大三岁", "Bài 8 · Buổi 2 · 马丁比我大三岁", "Bài 9 · 你今天做什么了？", "Bài 10 · 你怎么了？", "Bài 11 · 我来北京一年了", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "hsk1": ["语音、声调、韵母 (Tổng quan Ngữ âm & Quy tắc biến điệu)", "Bài 1 · Buổi 1 · AI小语，你好！ – Từ vựng & Ngữ pháp: Chào hỏi, xưng hô", "Bài 1 · Buổi 2 · AI小语，你好！ – Bài khóa & Luyện nói: 我的问候", "Bài 2 · Buổi 1 · 我叫李文 – Từ vựng & Ngữ pháp: hỏi tên, giới thiệu bản thân", "Bài 2 · Buổi 2 · 我叫李文 – Bài khóa & Luyện nói: 自我介绍与认识新朋友", "Bài 3 · Buổi 1 · 我是中国人 – Từ vựng & Ngữ pháp: Quốc tịch và giới thiệu người khác", "Bài 3 · Buổi 2 · 我是中国人 – Bài khóa & Luyện nói: 我的国籍和朋友", "Bài 4 · Buổi 1 · 我有两个孩子 – Từ vựng & Ngữ pháp: Gia đình và số lượng", "Bài 4 · Buổi 2 · 我有两个孩子 – Bài khóa & Luyện nói: 我的家", "Bài 5 · Buổi 1 · 今天我休息 – Từ vựng & Ngữ pháp: Ngày nghỉ và sinh hoạt", "Bài 5 · Buổi 2 · 今天我休息 – Bài khóa & Luyện nói: 我的休息日", "Bài 6 · Buổi 1 · 你的手机号是多少？ – Từ vựng & Ngữ pháp: Số điện thoại và liên lạc", "Bài 6 · Buổi 2 · 你的手机号是多少？ – Bài khóa & Luyện nói: 我的联系方式", "Bài 7 · Buổi 1 · 我晚上六点半下班 – Từ vựng & Ngữ pháp: Giờ giấc và tan làm", "Bài 7 · Buổi 2 · 我晚上六点半下班 – Bài khóa & Luyện nói: 我的时间表", "Bài 8 · Buổi 1 · 我爸爸也在医院工作 – Từ vựng & Ngữ pháp: Nghề nghiệp và nơi làm việc", "Bài 8 · Buổi 2 · 我爸爸也在医院工作 – Bài khóa & Luyện nói: 我的家人和工作", "Ôn tập giữa khóa (Bài 1 – Bài 8)", "Kiểm tra giữa khóa (Bài 1 – Bài 8)", "Bài 9 · Buổi 1 · 明天上午在学校学习 – Từ vựng & Ngữ pháp: Thời gian, địa điểm học tập", "Bài 9 · Buổi 2 · 明天上午在学校学习 – Bài khóa & Luyện nói: 我的学习安排", "Bài 10 · Buổi 1 · 这儿的苹果真便宜！ – Từ vựng & Ngữ pháp: Mua sắm và giá cả", "Bài 10 · Buổi 2 · 这儿的苹果真便宜！ – Bài khóa & Luyện nói: 我去买水果", "Bài 11 · Buổi 1 · 我读大学呢 – Từ vựng & Ngữ pháp: Đại học và học tập", "Bài 11 · Buổi 2 · 我读大学呢 – Bài khóa & Luyện nói: 我的大学生活", "Bài 12 · Buổi 1 · 昨天下雪了 – Từ vựng & Ngữ pháp: Thời tiết và sự việc đã xảy ra", "Bài 12 · Buổi 2 · 昨天下雪了 – Bài khóa & Luyện nói: 昨天和今天的天气", "Bài 13 · Buổi 1 · 请给我一杯茶 – Từ vựng & Ngữ pháp: Đồ uống và yêu cầu lịch sự", "Bài 13 · Buổi 2 · 请给我一杯茶 – Bài khóa & Luyện nói: 在饮品店", "Bài 14 · Buổi 1 · 我看了一个电影 – Từ vựng & Ngữ pháp: Xem phim và kể chuyện đã làm", "Bài 14 · Buổi 2 · 我看了一个电影 – Bài khóa & Luyện nói: 我昨天做了什么", "Bài 15 · Buổi 1 · 大兴机场见！ – Từ vựng & Ngữ pháp: Sân bay, đi lại và hẹn gặp", "Bài 15 · Buổi 2 · 大兴机场见！ – Bài khóa & Luyện nói: 我们在机场见", "Ôn tập cuối khóa HSK 1 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 15)", "Ôn tập cuối khóa HSK 1 (Phần 2: Luyện đề thi mô phỏng HSK 1)", "Kiểm tra cuối khóa HSK 1 & Tổng kết"], "hsk2": ["Bài 1 · Buổi 1 · 她请我们吃了北京烤鸭 – Từ vựng & Ngữ pháp: câu kiêm ngữ 请/让/叫, 吧 phỏng đoán, 是……的", "Bài 1 · Buổi 2 · 她请我们吃了北京烤鸭 – Bài khóa & Luyện khẩu ngữ: 第一次来北京", "Bài 2 · Buổi 1 · 还是打车去北大吧 – Từ vựng & Ngữ pháp: 还是……吧, 多 ước lượng, định ngữ V + 的 + N", "Bài 2 · Buổi 2 · 还是打车去北大吧 – Bài khóa & Luyện khẩu ngữ: 我怎么去学校", "Bài 3 · Buổi 1 · 我想去西安旅游 – Từ vựng & Ngữ pháp: bổ ngữ kết quả, lặp lại động từ", "Bài 3 · Buổi 2 · 我想去西安旅游 – Bài khóa & Luyện khẩu ngữ: 我的旅游计划", "Bài 4 · Buổi 1 · 你穿红色的很好看 – Từ vựng & Ngữ pháp: trợ từ 过, 因为……所以……, cụm chữ 的", "Bài 4 · Buổi 2 · 你穿红色的很好看 – Bài khóa & Luyện khẩu ngữ: 我的衣服", "Bài 5 · Buổi 1 · 第一次去中国朋友家 – Từ vựng & Ngữ pháp: bổ ngữ xu hướng đơn, 都……了", "Bài 5 · Buổi 2 · 第一次去中国朋友家 – Bài khóa & Luyện khẩu ngữ: 第一次去朋友家", "Bài 6 · Buổi 1 · 小雪，生日快乐！ – Từ vựng & Ngữ pháp: lặp lại tính từ, 什么的, trợ từ 地", "Bài 6 · Buổi 2 · 小雪，生日快乐！ – Bài khóa & Luyện nói: 我的生日", "Bài 7 · Buổi 1 · 他篮球打得很好 – Từ vựng & Ngữ pháp: 一……就……, bổ ngữ trạng thái V + 得 + Adj", "Bài 7 · Buổi 2 · 他篮球打得很好 – Bài khóa & Luyện nói: 我的运动", "Bài 8 · Buổi 1 · 虽然你忘了，但是我记得 – Từ vựng & Ngữ pháp: câu so sánh 比 / 没有, 虽然……但是……", "Bài 8 · Buổi 2 · 虽然你忘了，但是我记得 – Bài khóa & Luyện nói: 一次考试", "Ôn tập giữa khóa HSK 2 (Phần 1: Bài 1 – Bài 4)", "Ôn tập giữa khóa HSK 2 (Phần 2: Bài 5 – Bài 8)", "Kiểm tra giữa khóa HSK 2 (Bài 1 – Bài 8)", "Bài 9 · Buổi 1 · 我去买杯奶茶 – Từ vựng & Ngữ pháp: 离, 跟……一样, bổ ngữ thời lượng", "Bài 9 · Buổi 2 · 我去买杯奶茶 – Bài khóa & Luyện nói: 累了，我去买杯奶茶", "Bài 10 · Buổi 1 · 就要考试了 – Từ vựng & Ngữ pháp: 要/快要/就要……了, câu hỏi 还是, câu vị ngữ chủ-vị", "Bài 10 · Buổi 2 · 就要考试了 – Bài khóa & Luyện nói: 我的考试", "Bài 11 · Buổi 1 · 我最喜欢吃中国菜 – Từ vựng & Ngữ pháp: phó từ 最, trợ từ 着", "Bài 11 · Buổi 2 · 我最喜欢吃中国菜 – Bài khóa & Luyện nói: 我最喜欢的菜", "Bài 12 · Buổi 1 · 这里比北京冷多了 – Từ vựng & Ngữ pháp: so sánh 比 (4)(5)(6)", "Bài 12 · Buổi 2 · 这里比北京冷多了 – Bài khóa & Luyện nói: 比较两个城市的天气", "Bài 13 · Buổi 1 · 我们都爱上中文课 – Từ vựng & Ngữ pháp: song tân ngữ, so sánh 有 / 跟……一样, 越……越……", "Bài 13 · Buổi 2 · 我们都爱上中文课 – Bài khóa & Luyện nói: 我的中文课", "Bài 14 · Buổi 1 · 一个人过年多没意思啊 – Từ vựng & Ngữ pháp: 多……啊, câu tồn hiện, bổ ngữ xu hướng kép", "Bài 14 · Buổi 2 · 一个人过年多没意思啊 – Bài khóa & Luyện nói: 我家的春节", "Bài 15 · Buổi 1 · 我想再去一次中国 – Từ vựng & Ngữ pháp: bổ ngữ động lượng, 再 / 又, câu chữ 有 (2)", "Bài 15 · Buổi 2 · 我想再去一次中国 – Bài khóa & Luyện nói: 我想再去一次……", "Ôn tập cuối khóa HSK 2 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 15)", "Ôn tập cuối khóa HSK 2 (Phần 2: Luyện đề thi mô phỏng)", "Kiểm tra cuối khóa HSK 2 & Tổng kết"], "hsk3": ["Bài 1 · Buổi 1 · 我们去机场接你们 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 1 · Buổi 2 · 我们去机场接你们 – Bài khóa & Luyện khẩu ngữ: 我去机场接朋友", "Bài 2 · Buổi 1 · 你们想吃什么就点什么 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 2 · Buổi 2 · 你们想吃什么就点什么 – Bài khóa & Luyện khẩu ngữ: 我在饭馆点菜", "Bài 3 · Buổi 1 · 这个小区挺好的 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 3 · Buổi 2 · 这个小区挺好的 – Bài khóa & Luyện khẩu ngữ: 我住的小区", "Bài 4 · Buổi 1 · 这家宾馆跟别的都不一样 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 4 · Buổi 2 · 这家宾馆跟别的都不一样 – Bài khóa & Luyện khẩu ngữ: 我比较的两家宾馆", "Bài 5 · Buổi 1 · 这样的照片才好看 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 5 · Buổi 2 · 这样的照片才好看 – Bài khóa & Luyện khẩu ngữ: 我喜欢的一张照片", "Bài 6 · Buổi 1 · 高铁上还可以点外卖 – Từ vựng & Ngữ pháp: 该……了, 如果……就……, 越来越", "Bài 6 · Buổi 2 · 高铁上还可以点外卖 – Bài khóa & Luyện khẩu ngữ: 我的一次旅行", "Bài 7 · Buổi 1 · 那条裙子比短裤更好看 – Từ vựng & Ngữ pháp: 着 trong câu liên động, 不比, 极了, 不但……而且……", "Bài 7 · Buổi 2 · 那条裙子比短裤更好看 – Bài khóa & Luyện khẩu ngữ: 我的购物经历", "Bài 8 · Buổi 1 · 今天我出院了 – Từ vựng & Ngữ pháp: 下去, từ li hợp, bổ ngữ thời lượng, 以前/以后", "Bài 8 · Buổi 2 · 今天我出院了 – Bài khóa & Luyện khẩu ngữ: 一次生病的经历", "Bài 9 · Buổi 1 · 打不好没关系 – Từ vựng & Ngữ pháp: 为了……, bổ ngữ khả năng, 越A越B", "Bài 9 · Buổi 2 · 打不好没关系 – Bài khóa & Luyện khẩu ngữ: 我喜欢的运动", "Ôn tập giữa khóa (Bài 1 – Bài 9)", "Kiểm tra giữa khóa (Bài 1 – Bài 9)", "Bài 10 · Buổi 1 · 你明天再把书还给我 – Từ vựng & Ngữ pháp: Câu chữ 把 (1), 在……上/中/下, Câu chữ 把 (2)", "Bài 10 · Buổi 2 · 你明天再把书还给我 – Bài khóa & Luyện khẩu ngữ: 我的学习方法", "Bài 11 · Buổi 1 · 看来我没办法解决这个问题 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 11 · Buổi 2 · 看来我没办法解决这个问题 – Bài khóa & Luyện khẩu ngữ: 我解决的一件事", "Bài 12 · Buổi 1 · 这个季节天气变化很快 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 12 · Buổi 2 · 这个季节天气变化很快 – Bài khóa & Luyện khẩu ngữ: 我家乡四季的天气", "Bài 13 · Buổi 1 · 我的新邻居来自英国 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 13 · Buổi 2 · 我的新邻居来自英国 – Bài khóa & Luyện khẩu ngữ: 我的新邻居", "Bài 14 · Buổi 1 · 这本书被别人借走了 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 14 · Buổi 2 · 这本书被别人借走了 – Bài khóa & Luyện khẩu ngữ: 我的书被借走了", "Bài 15 · Buổi 1 · 我是半个南京人 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 15 · Buổi 2 · 我是半个南京人 – Bài khóa & Luyện khẩu ngữ: 我的家乡", "Bài 16 · Buổi 1 · 我听说有的熊猫出国了 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 16 · Buổi 2 · 我听说有的熊猫出国了 – Bài khóa & Luyện khẩu ngữ: 我听说的熊猫", "Bài 17 · Buổi 1 · 我要多向认真的人学习 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 17 · Buổi 2 · 我要多向认真的人学习 – Bài khóa & Luyện khẩu ngữ: 我想向他学习", "Bài 18 · Buổi 1 · 我学会了包饺子 – Từ vựng & Ngữ pháp: Từ vựng, ngữ pháp và vận dụng", "Bài 18 · Buổi 2 · 我学会了包饺子 – Bài khóa & Luyện khẩu ngữ: 我学会做一道菜", "Ôn tập cuối khóa HSK 3.0 (Phần 1: Từ vựng & Ngữ pháp Bài 1 – 9)", "Ôn tập cuối khóa HSK 3.0 (Phần 2: Từ vựng & Ngữ pháp Bài 10 – 18)", "Ôn tập cuối khóa HSK 3.0 (Phần 3: Luyện đề thi mô phỏng HSK 3)", "Kiểm tra cuối khóa HSK 3.0 & Tổng kết"], "yct3": ["Bài 1 · Buổi 1 · 我三年级", "Bài 1 · Buổi 2 · 我三年级", "Bài 2 · Buổi 1 · 你喜欢什么运动？", "Bài 2 · Buổi 2 · 你喜欢什么运动？", "Bài 3 · Buổi 1 · 我在画画儿呢", "Bài 3 · Buổi 2 · 我在画画儿呢", "Bài 4 · Buổi 1 · 喂，您好！", "Bài 4 · Buổi 2 · 喂，您好！", "Bài 5 · Buổi 1 · 再吃几个", "Bài 5 · Buổi 2 · 再吃几个", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 我能自己穿", "Bài 6 · Buổi 2 · 我能自己穿", "Bài 7 · Buổi 1 · 生日快乐！", "Bài 7 · Buổi 2 · 生日快乐！", "Bài 8 · Buổi 1 · 下雪了", "Bài 8 · Buổi 2 · 下雪了", "Bài 9 · 笑一笑！", "Bài 10 · 谁跑得快？", "Bài 11 · 妈妈把糖给弟弟了", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct4": ["Bài 1 · Buổi 1 · 我们有一百零八个学生", "Bài 1 · Buổi 2 · 我们有一百零八个学生", "Bài 2 · Buổi 1 · 你学汉语多长时间了？", "Bài 2 · Buổi 2 · 你学汉语多长时间了？", "Bài 3 · Buổi 1 · 早上八点半就开门", "Bài 3 · Buổi 2 · 早上八点半就开门", "Bài 4 · Buổi 1 · 我感冒了", "Bài 4 · Buổi 2 · 我感冒了", "Bài 5 · Buổi 1 · 把门关上", "Bài 5 · Buổi 2 · 把门关上", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 你去过我们的新教室吗？", "Bài 6 · Buổi 2 · 你去过我们的新教室吗？", "Bài 7 · Buổi 1 · 你们每天怎么去学校？", "Bài 7 · Buổi 2 · 你们每天怎么去学校？", "Bài 8 · Buổi 1 · 要下雨了", "Bài 8 · Buổi 2 · 要下雨了", "Bài 9 · 你是什么时候去的？", "Bài 10 · 爸爸为什么不休息？", "Bài 11 · 它长得很快", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct5": ["Bài 1 · Buổi 1 · 你对中国功夫感兴趣吗？", "Bài 1 · Buổi 2 · 你对中国功夫感兴趣吗？", "Bài 2 · Buổi 1 · 兔子更可爱", "Bài 2 · Buổi 2 · 兔子更可爱", "Bài 3 · Buổi 1 · 电梯坏了", "Bài 3 · Buổi 2 · 电梯坏了", "Bài 4 · Buổi 1 · 每个人都有自己的习惯", "Bài 4 · Buổi 2 · 每个人都有自己的习惯", "Bài 5 · Buổi 1 · 他们多么年轻啊！", "Bài 5 · Buổi 2 · 他们多么年轻啊！", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · 站着的还是坐着的？", "Bài 7 · 我经常去体育馆锻炼身体", "Bài 8 · 北京一共有四个季节", "Bài 9 · 冰激凌既好吃又便宜", "Bài 10 · 你的汉语会越来越好", "Bài 11 · 来一盘羊肉饺子", "Bài 12 · 坐飞机或者坐火车都可以", "Bài 13 · 我先帮你补牙", "Bài 14 · 我们打算去中国旅游", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"], "yct6": ["Bài 1 · Buổi 1 · 我属猴", "Bài 1 · Buổi 2 · 我属猴", "Bài 2 · Buổi 1 · 他数学好极了", "Bài 2 · Buổi 2 · 他数学好极了", "Bài 3 · Buổi 1 · 小鸟正在唱歌", "Bài 3 · Buổi 2 · 小鸟正在唱歌", "Bài 4 · Buổi 1 · 你打扫一下房间好吗？", "Bài 4 · Buổi 2 · 你打扫一下房间好吗？", "Bài 5 · Buổi 1 · 你太马虎了！", "Bài 5 · Buổi 2 · 你太马虎了！", "Ôn tập giữa khóa (期中复习)", "Kiểm tra giữa khóa (期中考试)", "Bài 6 · Buổi 1 · 他们不是双胞胎", "Bài 6 · Buổi 2 · 他们不是双胞胎", "Bài 7 · Buổi 1 · 小鱼被小猫吃了", "Bài 7 · Buổi 2 · 小鱼被小猫吃了", "Bài 8 · 他家搬到动物园附近了", "Bài 9 · 月亮离我们多远", "Bài 10 · 我用帽子还你的盘子", "Bài 11 · 我爱吃辣的", "Bài 12 · 有的熊猫一直睡觉", "Ôn tập cuối khóa (期末复习)", "Ôn tập cuối khóa (期末复习)", "Kiểm tra cuối khóa (期末考试)"]};
 function templateIndex(plan, b, sn) {
   for (var i = 0; i < plan.length; i++) {
     if (plan[i].indexOf("Bài " + b + " · Buổi " + sn + " ") === 0) return i + 1;
@@ -1461,7 +1520,7 @@ function templateIndex(plan, b, sn) {
   }
   return 0;
 }
-var LEVEL_TEMPLATE = { "HSK 1": "hsk1", "HSK 2": "hsk2", "HSK 3": "hsk3", "YCT 3": "yct3", "YCT 4": "yct4", "YCT 5": "yct5", "YCT 6": "yct6" };
+var LEVEL_TEMPLATE = { "HSK 1": "hsk1", "HSK 2": "hsk2", "HSK 3": "hsk3", "YCT 1": "yct1", "YCT 2": "yct2", "YCT 3": "yct3", "YCT 4": "yct4", "YCT 5": "yct5", "YCT 6": "yct6" };
 $("cLevel").addEventListener("change", function () {
   if ($("cPlace").value === "own" && LEVEL_TEMPLATE[$("cLevel").value] && (!$("cPer").value || PLAN_TEMPLATES[$("cPer").value])) $("cPer").value = LEVEL_TEMPLATE[$("cLevel").value];
 });
@@ -1563,37 +1622,180 @@ function presentOf(cid, date) { return studentsOf(cid).filter(function (h) { var
 function reviewOf(sid, date) { return state.reviews.filter(function (r) { return r.id === date + "_" + sid; })[0] || {}; }
 function lowerFirst(t) { return t.charAt(0).toLocaleLowerCase("vi") + t.slice(1); }
 function joinVi(a) { return a.length > 1 ? a.slice(0, -1).join(", ") + " và " + a[a.length - 1] : a.join(""); }
+function sessionOf(cid, date) { return state.sessions.filter(function (r) { return r.id === date + "_" + cid; })[0] || {}; }
+/* Lấy từ vựng và mẫu câu của buổi từ giáo án chi tiết (cột NoiDungBaiHoc); buổi 2 của bài dùng lại từ của buổi 1. */
+function parsePlanContent(text) {
+  var vocab = [], pattern = [], mode = "";
+  String(text || "").split(/\r?\n/).forEach(function (raw) {
+    var l = raw.trim();
+    if (!l) { if (mode === "p") mode = ""; return; }
+    if (/^từ vựng/i.test(l)) { mode = "v"; return; }
+    if (/^mẫu câu/i.test(l)) { mode = "p"; return; }
+    var m = /^([㐀-鿿][^:：]{0,24})[:：]\s*(.+)$/.exec(l);
+    if (m && mode !== "p") { vocab.push(m[1].trim() + ": " + m[2].trim()); return; }
+    if (mode === "p" && /[㐀-鿿]/.test(l)) pattern.push(l);
+    else if (mode === "p") mode = "";
+  });
+  return { vocab: vocab, pattern: pattern };
+}
+var AUTO = {};
+function autoContent(c, n) { return AUTO[c.id + "_" + n] || null; }
+function ensureAuto(c, n) {
+  var key = lpKey(c), k = c.id + "_" + n;
+  if (!key || !n || AUTO[k] || !sb) return;
+  AUTO[k] = { vocab: [], pattern: [], loading: true };
+  loadPlanDoc(key).then(function (doc) {
+    var out = { vocab: [], pattern: [] };
+    if (doc) {
+      var hs = (doc.headers || []).map(function (h) { return String(h || "").trim().toLowerCase(); }), ci = hs.indexOf("noidungbaihoc"), ti = hs.indexOf("tenbaihoc");
+      var row = planRow(doc, n), name = row && ti >= 0 ? row[ti] : null;
+      for (var back = 0; back < 4 && row && ci >= 0; back++) {
+        var r = planRow(doc, n - back);
+        if (!r || (back && ti >= 0 && r[ti] !== name)) break;
+        var got = parsePlanContent(r[ci]);
+        if (!out.pattern.length) out.pattern = got.pattern;
+        if (got.vocab.length) { out.vocab = got.vocab; break; }
+      }
+    }
+    AUTO[k] = out;
+    if (!state.reviewTyping) renderReview();
+  }).catch(function () { AUTO[k] = { vocab: [], pattern: [] }; });
+}
+function vocabOf(c, date) {
+  var s = sessionOf(c.id, date);
+  if (s.vocab) return String(s.vocab).split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+  var a = autoContent(c, sessionAt(c, date));
+  return a ? a.vocab : [];
+}
+function patternOf(c, date) {
+  var s = sessionOf(c.id, date);
+  if (s.pattern) return String(s.pattern);
+  var a = autoContent(c, sessionAt(c, date));
+  return a ? a.pattern.join("\n") : "";
+}
+/* "家 jiā: nhà" -> "家 jiā – nhà" */
+function vocabFmt(line) { var m = /^(.*?)\s*[:：]\s*(.+)$/.exec(line); return m ? m[1] + " – " + m[2] : line; }
+function vocabHead(line) { var m = /^(.*?)\s*[:：]/.exec(line); return m ? m[1] : line; }
+function seedOf(s) { var h = 0; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function pick(arr, seed) { return arr[seed % arr.length]; }
+function capFirst(t) { return t ? t.charAt(0).toLocaleUpperCase("vi") + t.slice(1) : t; }
+function hwPill(r) {
+  if (r.dd === "phep" || r.dd === "khong") return ["off", "Nghỉ học"];
+  if (r.hw === "du") return ["ok", HW_TABLE.du];
+  if (r.hw === "chua" || r.hw === "khongmang") return ["half", HW_TABLE[r.hw]];
+  if (r.hw === "khonglam") return ["no", HW_TABLE.khonglam];
+  return ["none", "Chưa chấm"];
+}
+function wordsOf(r) { return (Array.isArray(r.on) ? r.on : []).map(vocabFmt); }
+function scoreText(v, max) { return v === "" || v == null ? "" : v + (max ? "/" + max : ""); }
+function levelLists(map, keys) {
+  var by = { tot: [], kha: [], can: [] };
+  Object.keys(keys).forEach(function (k) { if (by[map[k]]) by[map[k]].push(keys[k]); });
+  return by;
+}
+function audienceOf(h) { return h.audience === "hv" ? "hv" : "ph"; }
+/* Ghép lời nhận xét tự nhiên từ các lựa chọn. Giáo viên chỉ bấm chọn; mọi câu đều do app viết. */
 function reviewText(h, c, date, r) {
-  var n = sessionAt(c, date), lesson = planLabel(c.plan, n), d = toDate(date), lines = [];
-  var at = Array.isArray(r.at) ? r.at : [], kt = r.kt && typeof r.kt === "object" ? r.kt : {};
+  var n = sessionAt(c, date), lesson = planLabel(c.plan, n), d = toDate(date), s = sessionOf(c.id, date), seed = seedOf(h.id + date);
+  var hv = audienceOf(h) === "hv", name = titleName(h.name).split(" ").slice(-1)[0] || titleName(h.name);
+  function T(t) { return t.replace(/\{Con\}/g, hv ? "Em" : "Con").replace(/\{con\}/g, hv ? "em" : "con"); }
+  var at = Array.isArray(r.at) ? r.at : [], kt = r.kt && typeof r.kt === "object" ? r.kt : {}, hq = r.hwq && typeof r.hwq === "object" ? r.hwq : {};
+  var errs = (Array.isArray(r.hwErr) ? r.hwErr : []).filter(function (k) { return HWERR[k]; }), words = wordsOf(r), lines = [], vocab = vocabOf(c, date);
   lines.push("Nhận xét buổi học " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " - Lớp " + c.name);
   lines.push("Học viên: " + titleName(h.name));
   if (lesson) lines.push("Bài học: " + lesson);
+  lines.push("");
   if (r.dd === "phep" || r.dd === "khong") {
-    lines.push("- Hôm nay con vắng học" + (r.dd === "phep" ? " có phép." : " không báo trước."));
-    if (r.note) lines.push("- " + r.note);
-    lines.push("Nhờ phụ huynh cho con xem lại bài" + (lesson ? " " + lesson : "") + " và làm bài tập để theo kịp lớp nhé. Cô cảm ơn ạ.");
+    lines.push(T("Hôm nay {con} nghỉ học" + (r.dd === "phep" ? " có phép." : " không báo trước.")));
+    if (vocab.length) lines.push("Từ vựng buổi này: " + vocab.slice(0, 12).map(vocabFmt).join("; ") + (vocab.length > 12 ? "…" : "") + ".");
+    if (s.hwGiven) lines.push("Bài tập về nhà: " + s.hwGiven);
+    if (r.note) lines.push(r.note);
+    lines.push(T(hv ? "Em xem lại bài và làm bài tập để theo kịp lớp nhé. Có chỗ nào chưa hiểu em cứ hỏi cô." : "Nhờ phụ huynh cho con xem lại bài và làm bài tập để theo kịp lớp nhé. Cô cảm ơn ạ!"));
     return lines.join("\n");
   }
-  if (r.dd === "muon") lines.push("- Hôm nay con đi học muộn.");
-  if (HW[r.hw]) lines.push("- Bài tập về nhà: " + HW[r.hw][1] + " bài tập.");
+  if (OPEN[r.ov]) lines.push(T(pick(OPEN[r.ov], seed)));
+  // Bài tập về nhà
+  var hw = [];
+  var hwOpen = { du: ["{Con} làm đầy đủ bài tập về nhà", "{Con} hoàn thành đầy đủ bài tập về nhà"], chua: ["{Con} có làm bài tập nhưng chưa hết", "Bài tập về nhà {con} làm chưa hết"], khonglam: ["Hôm nay {con} chưa làm bài tập về nhà"], khongmang: ["Hôm nay {con} quên mang bài tập về nhà"] };
+  var first = hwOpen[r.hw] ? pick(hwOpen[r.hw], seed) : "";
+  if (r.chep === "co") first = first ? first + (r.hw === "du" ? " và chép từ vựng cẩn thận" : ", nhưng đã chép từ vựng") : "{Con} đã chép từ vựng đầy đủ";
+  if (r.chep === "chua") first = first ? first + (r.hw === "du" ? ", nhưng chưa chép từ vựng" : " và chưa chép từ vựng") : "{Con} chưa chép từ vựng";
+  if (first) hw.push(T(first) + (r.hwScore !== "" && r.hwScore != null ? T(", đạt " + scoreText(r.hwScore, s.maxHw) + " điểm.") : "."));
+  else if (r.hwScore !== "" && r.hwScore != null) hw.push(T("Bài tập về nhà {con} đạt " + scoreText(r.hwScore, s.maxHw) + " điểm."));
+  var q = levelLists(hq, HWQ_TXT), qs = [];
+  if (q.tot.length) qs.push(T(pick(["{Con} làm tốt phần ", "Phần làm tốt của {con} là "], seed) + joinVi(q.tot)));
+  if (q.kha.length) qs.push(T("phần " + joinVi(q.kha) + " {con} làm khá"));
+  if (q.can.length) qs.push(T("{con} cần chú ý hơn ở phần " + joinVi(q.can)));
+  if (qs.length) hw.push(capFirst(qs.join("; ")) + ".");
+  if (errs.length) {
+    var pin = errs.filter(function (k) { return HWERR_GROUPS[1][1][k]; }), oth = errs.filter(function (k) { return !HWERR_GROUPS[1][1][k]; });
+    var es = [];
+    if (oth.length) es.push(joinVi(oth.map(function (k) { return lowerFirst(HWERR[k]); })));
+    if (pin.length) es.push((oth.length ? "về phiên âm thì " : "phần phiên âm còn ") + joinVi(pin.map(function (k) { return lowerFirst(HWERR[k]); })));
+    hw.push(T(pick(["Một số lỗi {con} cần sửa: ", "Cô có đánh dấu vài lỗi để {con} sửa: "], seed) + es.join("; ") + "."));
+  }
+  if (r.hwNote) hw.push(r.hwNote);
+  if (hw.length) lines.push("• Bài tập về nhà: " + hw.join(" "));
+  // Trên lớp
+  var cl = [];
   var good = at.filter(function (k) { return ATT[k] && ATT[k][1]; }).map(function (k) { return lowerFirst(ATT[k][0]); });
   var bad = at.filter(function (k) { return ATT[k] && !ATT[k][1]; }).map(function (k) { return lowerFirst(ATT[k][0]); });
-  if (good.length || bad.length) lines.push("- Thái độ: " + (good.length ? "Con " + joinVi(good) + "." : "") + (bad.length ? (good.length ? " Tuy nhiên con " : "Con ") + joinVi(bad) + "." : ""));
-  var by = { tot: [], kha: [], can: [] };
-  Object.keys(SKILLS).forEach(function (k) { if (by[kt[k]]) by[kt[k]].push(lowerFirst(SKILLS[k])); });
-  var kb = [];
-  if (by.tot.length) kb.push("Con làm tốt phần " + joinVi(by.tot) + ".");
-  if (by.kha.length) kb.push("Phần " + joinVi(by.kha) + " con làm khá.");
-  if (by.can.length) kb.push("Con cần cố gắng thêm ở phần " + joinVi(by.can) + ".");
-  if (kb.length) lines.push("- Kiến thức: " + kb.join(" "));
-  if (r.note) lines.push("- " + r.note);
+  if (good.length) cl.push(T("{Con} " + joinVi(good) + "."));
+  if (bad.length) cl.push(T((good.length ? "Tuy nhiên {con} còn " : "{Con} còn ") + joinVi(bad.map(function (x) { return x.replace(/^còn /, ""); })) + "."));
+  var k2 = levelLists(kt, Object.keys(SKILLS).reduce(function (o, k) { o[k] = lowerFirst(SKILLS[k]); return o; }, {}));
+  if (k2.tot.length) cl.push(T(pick(["{Con} nắm tốt phần ", "Phần {con} làm tốt là "], seed + 1) + joinVi(k2.tot) + "."));
+  if (k2.kha.length) cl.push(T("Phần " + joinVi(k2.kha) + " {con} làm khá."));
+  if (k2.can.length) cl.push(T("{Con} cần luyện thêm phần " + joinVi(k2.can) + "."));
+  if (r.score !== "" && r.score != null) {
+    var mx = Number(s.maxTest) || 0, pc = mx ? Number(r.score) / mx : -1, cm = pc >= 0.9 ? ", rất tốt" : pc >= 0.7 ? ", khá tốt" : pc >= 0 && pc < 0.5 ? ", {con} cần ôn lại bài" : "";
+    cl.push(T("Bài kiểm tra trên lớp {con} đạt " + scoreText(r.score, s.maxTest) + " điểm" + cm + "."));
+  }
+  if (cl.length) lines.push("• Trên lớp: " + cl.join(" "));
+  if (words.length) lines.push("• Từ cần ôn và luyện viết: " + words.join("; ") + ".");
+  var ex = (Array.isArray(r.extra) ? r.extra : []).filter(function (k) { return EXTRA[k]; }).map(function (k) { return T(EXTRA[k]); });
+  if (ex.length || r.note) lines.push("• " + ex.concat(r.note ? [r.note] : []).join(" "));
+  if (s.hwGiven) lines.push("• Bài tập về nhà buổi tới: " + s.hwGiven);
+  // Lời nhờ / dặn dò
   var ask = [];
-  if (r.hw === "chua" || r.hw === "khonglam") ask.push("nhắc con hoàn thành bài tập");
-  if (r.hw === "khongmang") ask.push("nhắc con mang bài tập khi đi học");
-  if (by.can.length) ask.push("cho con ôn lại phần " + joinVi(by.can) + " ở nhà");
-  lines.push(ask.length ? "Nhờ phụ huynh " + ask.join(" và ") + " giúp cô nhé. Cô cảm ơn ạ." : "Cô cảm ơn phụ huynh đã đồng hành cùng con ạ.");
+  if (r.hw === "chua" || r.hw === "khonglam") ask.push("hoàn thành bài tập còn thiếu");
+  if (r.hw === "khongmang") ask.push("chuẩn bị bài tập vào cặp trước buổi học");
+  if (r.chep === "chua") ask.push("chép từ vựng");
+  if (words.length) ask.push("luyện viết lại các từ cần ôn");
+  if (hq.pinyin === "can" || hq.thanh === "can" || kt.pinyin === "can" || errs.some(function (k) { return HWERR_GROUPS[1][1][k]; })) ask.push("đọc lại phiên âm cùng audio bài học");
+  if (k2.can.length) ask.push("ôn lại phần " + joinVi(k2.can));
+  lines.push("");
+  if (hv) lines.push(ask.length ? "Em nhớ " + joinVi(ask) + " nhé. Cô chúc em học tốt!" : pick(["Em giữ phong độ này nhé. Cô chúc em học tốt!", "Cô chúc em học tốt và giữ vững tinh thần này nhé!"], seed));
+  else lines.push(ask.length ? "Nhờ phụ huynh nhắc con " + joinVi(ask) + " giúp cô nhé. Cô cảm ơn ạ!" : pick(["Cô cảm ơn phụ huynh đã luôn đồng hành cùng con ạ!", "Cảm ơn phụ huynh đã đồng hành cùng con ạ!"], seed));
   return lines.join("\n");
+}
+/* Bảng kết quả cả lớp, giống bảng theo dõi trên Google Sheets. */
+function resultRows(c, date) {
+  var s = sessionOf(c.id, date);
+  return studentsOf(c.id).map(function (h, i) {
+    var r = reviewOf(h.id, date), p = hwPill(r), off = r.dd === "phep" || r.dd === "khong";
+    var errs = (Array.isArray(r.hwErr) ? r.hwErr : []).filter(function (k) { return HWERR[k]; }).map(function (k) { return HWERR[k]; });
+    var cmt = errs.length ? "Lỗi: " + errs.join(", ") + "." : "";
+    if (r.hwNote) cmt += (cmt ? " " : "") + r.hwNote;
+    if (r.note) cmt += (cmt ? " " : "") + r.note;
+    if (off && !cmt) cmt = r.dd === "phep" ? "Vắng có phép" : "Vắng không phép";
+    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).join("; "), cmt: cmt };
+  });
+}
+function renderResults(c, date) {
+  var box = $("resultTable");
+  if (!box) return;
+  if (!c || !date) { box.innerHTML = ""; return; }
+  var rows = resultRows(c, date), vocab = vocabOf(c, date), pat = patternOf(c, date), d = toDate(date);
+  if (!rows.length) { box.innerHTML = '<p class="empty">Lớp này chưa có học viên.</p>'; return; }
+  var head = (vocab.length || pat) ? '<div class="rs-vocab"><b>Từ vựng và mẫu câu buổi ' + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + ":</b>\n" + esc(vocab.map(function (v, i) { return (i + 1) + ". " + v; }).join("\n") + (pat ? "\n" + pat : "")) + "</div>" : "";
+  box.innerHTML = head + '<div class="rs-wrap"><table class="rs"><thead><tr><th>STT</th><th>Tên</th><th>BTVN ' + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "</th><th>Chép từ vựng</th><th>Điểm BTVN</th><th>Điểm KT</th><th>Từ cần ôn & luyện viết</th><th>Nhận xét</th></tr></thead><tbody>" +
+    rows.map(function (x) { return '<tr><td class="n">' + x.stt + "</td><td>" + esc(x.name) + '</td><td><span class="pill ' + x.pill[0] + '">' + esc(x.pill[1]) + "</span></td><td>" + esc(x.chep) + '</td><td class="n">' + esc(x.hwScore) + '</td><td class="n">' + esc(x.score) + "</td><td>" + esc(x.words) + "</td><td>" + esc(x.cmt) + "</td></tr>"; }).join("") + "</tbody></table></div>";
+}
+function resultTsv(c, date) {
+  var d = toDate(date), cell = function (v) { return String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ").trim(); };
+  var out = [["STT", "Tên", "BTVN " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(), "Chép từ vựng", "Điểm BTVN", "Điểm KT", "Từ cần ôn & luyện viết", "Nhận xét"].join("\t")];
+  resultRows(c, date).forEach(function (x) { out.push([x.stt, x.name, x.pill[0] === "none" ? "" : x.pill[1], x.chep, x.hwScore, x.score, x.words, x.cmt].map(cell).join("\t")); });
+  return out.join("\n");
 }
 function fillReviewClasses() {
   var sel = $("rClass"), keep = sel.value;
@@ -1635,15 +1837,38 @@ $("rSaveUpTo").addEventListener("click", async function () {
     renderReview();
   } catch (x) { $("rStatus").textContent = "Chưa lưu được. Kiểm tra mạng rồi thử lại."; }
 });
+function chipRow(attr, map, picked, cls) {
+  return '<div class="filters">' + Object.keys(map).map(function (v) {
+    var lab = Array.isArray(map[v]) ? map[v][0] : map[v];
+    return '<button class="fbtn' + (cls ? " " + cls : "") + '" type="button" ' + attr + '="' + esc(v) + '" aria-pressed="' + (picked(v) ? "true" : "false") + '">' + esc(lab) + "</button>";
+  }).join("") + "</div>";
+}
+function levelGrid(attr, labels, cur) {
+  return '<div class="kt-grid">' + Object.keys(labels).map(function (k) {
+    return '<div class="kt-row"><span>' + esc(labels[k]) + '</span><div class="seg sm">' + Object.keys(LEVELS).map(function (l) { return '<button type="button" ' + attr + '="' + k + '" data-val="' + l + '" aria-pressed="' + (cur[k] === l) + '">' + LEVELS[l] + "</button>"; }).join("") + "</div></div>";
+  }).join("") + "</div>";
+}
+function fillSession(c, date) {
+  var s = c ? sessionOf(c.id, date) : {}, a = c ? autoContent(c, sessionAt(c, date)) : null;
+  var auto = !s.vocab && a && a.vocab.length;
+  [["sVocab", s.vocab || (a ? a.vocab.join("\n") : "")], ["sPattern", s.pattern || (a ? a.pattern.join("\n") : "")], ["sHwGiven", s.hwGiven || ""], ["sMaxTest", s.maxTest || ""], ["sMaxHw", s.maxHw || ""]].forEach(function (p) {
+    var el = $(p[0]); if (el && document.activeElement !== el) el.value = p[1];
+  });
+  var nv = c ? vocabOf(c, date).length : 0;
+  $("sessSum").textContent = nv ? "· " + nv + " từ" + (auto ? " (lấy từ giáo án)" : "") : (c && lpKey(c) ? "· chưa có từ vựng" : "· lớp chưa gắn tab giáo án");
+}
 function renderReview() {
   var cid = $("rClass").value, date = $("rDate").value, c = state.classes.filter(function (x) { return x.id === cid; })[0];
   fillProgress(c);
-  if (!c || !date) { $("reviewList").innerHTML = '<p class="empty">Chưa có lớp nào có học viên.</p>'; $("rLesson").textContent = ""; return; }
+  if (!c || !date) { $("reviewList").innerHTML = '<p class="empty">Chưa có lớp nào có học viên.</p>'; $("rLesson").textContent = ""; renderResults(null); return; }
   var n = sessionAt(c, date), lesson = planLabel(c.plan, n);
+  ensureAuto(c, n);
+  fillSession(c, date);
+  renderResults(c, date);
+  $("rShowPlan").hidden = !(lpKey(c) && n > 0); $("rShowPlan").dataset.n = n;
   $("rLesson").textContent = (n > 0 ? "Buổi " + n + (c.total ? "/" + c.total : "") : "") + (lesson ? " · " + lesson : "");
   var people = studentsOf(cid);
   if (!people.length) { $("rStudents").innerHTML = ""; $("reviewList").innerHTML = '<p class="empty">Lớp này chưa có học viên.</p>'; return; }
-  if (!people.some(function (h) { return h.id === state.rSel; })) state.rSel = people[0].id;
   var cnt = { co: 0, muon: 0, phep: 0, khong: 0 }, none = 0;
   $("attList").innerHTML = people.map(function (h) {
     var v = reviewOf(h.id, date).dd || "";
@@ -1653,67 +1878,123 @@ function renderReview() {
     }).join("") + "</div></div>";
   }).join("");
   $("attSum").textContent = "Có mặt " + (cnt.co + cnt.muon) + "/" + people.length + (cnt.phep + cnt.khong ? " · Vắng " + (cnt.phep + cnt.khong) : "") + (none ? " · Chưa điểm danh " + none : "");
-  people = people.filter(function (h) { var v = reviewOf(h.id, date).dd; return v === "co" || v === "muon"; });
-  if (!people.length) {
+  var marked = people.filter(function (h) { return reviewOf(h.id, date).dd; });
+  if (!marked.length) {
     $("rStudents").innerHTML = "";
-    $("reviewList").innerHTML = '<p class="empty">Điểm danh xong, phần nhận xét sẽ hiện cho các học viên có mặt.</p>';
+    $("reviewList").innerHTML = '<p class="empty">Điểm danh xong, phần nhận xét sẽ hiện cho từng học viên.</p>';
     return;
   }
-  if (!people.some(function (h) { return h.id === state.rSel; })) state.rSel = people[0].id;
-  $("rStudents").innerHTML = people.map(function (h) {
-    var r = reviewOf(h.id, date), done = r.hw || (r.at && r.at.length) || (r.kt && Object.keys(r.kt).length), off = r.dd === "phep" || r.dd === "khong";
+  if (!marked.some(function (h) { return h.id === state.rSel; })) state.rSel = marked[0].id;
+  $("rStudents").innerHTML = marked.map(function (h) {
+    var r = reviewOf(h.id, date), off = r.dd === "phep" || r.dd === "khong";
+    var done = off || r.ov || r.hw || r.chep || (r.at && r.at.length) || (r.kt && Object.keys(r.kt).length) || r.score || r.hwScore;
     return '<button class="fbtn' + (done ? " done" : "") + (off ? " off" : "") + '" type="button" data-rpick="' + esc(h.id) + '" aria-pressed="' + (h.id === state.rSel) + '">' + esc(titleName(h.name).split(" ").slice(-2).join(" ")) + (off ? " · vắng" : "") + "</button>";
   }).join("");
-  var h = people.filter(function (x) { return x.id === state.rSel; })[0], r = reviewOf(h.id, date), sid = esc(h.id);
-  var at = Array.isArray(r.at) ? r.at : [], kt = r.kt && typeof r.kt === "object" ? r.kt : {};
-  var hw = '<div class="filters">' + Object.keys(HW).map(function (v) { return '<button class="fbtn" type="button" data-rhw="' + v + '" aria-pressed="' + (r.hw === v) + '">' + HW[v][0] + "</button>"; }).join("") + "</div>";
-  var att = '<div class="filters">' + Object.keys(ATT).map(function (v) { return '<button class="fbtn" type="button" data-rat="' + v + '" aria-pressed="' + (at.indexOf(v) >= 0) + '">' + ATT[v][0] + "</button>"; }).join("") + "</div>";
-  var skills = '<div class="kt-grid">' + Object.keys(SKILLS).map(function (k) {
-    return '<div class="kt-row"><span>' + SKILLS[k] + '</span><div class="seg sm">' + Object.keys(LEVELS).map(function (l) { return '<button type="button" data-rkt="' + k + '" data-val="' + l + '" aria-pressed="' + (kt[k] === l) + '">' + LEVELS[l] + "</button>"; }).join("") + "</div></div>";
-  }).join("") + "</div>";
-  $("reviewList").innerHTML = '<div class="rv" data-sid="' + sid + '"><div class="title">' + esc(titleName(h.name)) + (h.code ? ' <span class="chip hint">' + esc(h.code) + "</span>" : "") + '</div><div class="rv-detail"><div>' +
-    "<h3>Bài tập về nhà</h3>" + hw + "<h3>Thái độ</h3>" + att + "<h3>Kiến thức</h3>" + skills +
-    '<label for="rn-' + sid + '" style="margin-top:8px">Ghi chú thêm<input id="rn-' + sid + '" data-rnote="' + sid + '" maxlength="300" value="' + esc(r.note || "") + '"></label></div>' +
-    '<div><textarea id="rt-' + sid + '" aria-label="Lời nhắn cho phụ huynh">' + esc(reviewText(h, c, date, r)) + '</textarea><div class="actions" style="margin-top:8px"><button class="btn" type="button" data-rcopy="' + sid + '">Sao chép</button><button class="btn quiet" type="button" data-rnext="1">Học viên tiếp</button></div></div></div></div>';
+  var h = marked.filter(function (x) { return x.id === state.rSel; })[0], r = reviewOf(h.id, date), sid = esc(h.id), s = sessionOf(c.id, date);
+  var off = r.dd === "phep" || r.dd === "khong", aud = audienceOf(h);
+  var at = Array.isArray(r.at) ? r.at : [], kt = r.kt && typeof r.kt === "object" ? r.kt : {}, hq = r.hwq && typeof r.hwq === "object" ? r.hwq : {};
+  var errs = Array.isArray(r.hwErr) ? r.hwErr : [], on = Array.isArray(r.on) ? r.on : [], ex = Array.isArray(r.extra) ? r.extra : [];
+  var audSeg = '<div class="seg sm" style="margin-left:auto">' + [["ph", "Gửi phụ huynh"], ["hv", "Gửi học viên"]].map(function (x) { return '<button type="button" data-raud="' + x[0] + '" aria-pressed="' + (aud === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+  var form;
+  if (off) {
+    form = '<p class="hint">Học viên vắng buổi này. Lời nhắn bên cạnh đã kèm từ vựng và bài tập để con tự học bù.</p>' +
+      '<label for="rf-note-' + sid + '" style="margin-top:8px">Ghi chú thêm (không bắt buộc)<input id="rf-note-' + sid + '" data-rf="note" maxlength="300" value="' + esc(r.note || "") + '"></label>';
+  } else {
+    var vocab = vocabOf(c, date);
+    var vmap = {}; vocab.forEach(function (v) { vmap[v] = vocabHead(v); });
+    form = "<h3>Tổng quan buổi học</h3>" + chipRow("data-rov", OVERALL, function (v) { return r.ov === v; }) +
+      "<h3>Bài tập về nhà</h3>" + chipRow("data-rhw", HW, function (v) { return r.hw === v; }) +
+      '<div class="kt-row" style="margin-top:4px"><span>Chép từ vựng</span><div class="seg sm">' + Object.keys(CHEP).map(function (k) { return '<button type="button" data-rchep="' + k + '" aria-pressed="' + (r.chep === k) + '">' + (k === "co" ? "Đã chép" : "Chưa chép") + "</button>"; }).join("") + "</div></div>" +
+      '<label class="num" style="margin-top:6px">Điểm BTVN <input type="number" inputmode="decimal" min="0" data-rf="hwScore" value="' + esc(r.hwScore == null ? "" : r.hwScore) + '">' + (s.maxHw ? "/" + esc(s.maxHw) : "") + "</label>" +
+      "<h3>Chất lượng bài tập</h3>" + levelGrid("data-rhwq", HWQ, hq) +
+      "<h3>Lỗi trong bài (bấm để chọn)</h3>" + HWERR_GROUPS.map(function (g) { return '<div class="hint" style="margin:4px 0 2px">' + g[0] + "</div>" + chipRow("data-rerr", g[1], function (v) { return errs.indexOf(v) >= 0; }, "err"); }).join("") +
+      "<h3>Thái độ trên lớp</h3>" + chipRow("data-rat", ATT, function (v) { return at.indexOf(v) >= 0; }) +
+      "<h3>Kiến thức trên lớp</h3>" + levelGrid("data-rkt", SKILLS, kt) +
+      '<label class="num" style="margin-top:6px">Điểm kiểm tra <input type="number" inputmode="decimal" min="0" data-rf="score" value="' + esc(r.score == null ? "" : r.score) + '">' + (s.maxTest ? "/" + esc(s.maxTest) : "") + "</label>" +
+      "<h3>Từ cần ôn & luyện viết</h3>" + (vocab.length ? chipRow("data-ron", vmap, function (v) { return on.indexOf(v) >= 0; }) : '<p class="hint">Chưa có từ vựng của buổi này. Mở mục "Nội dung buổi học" ở trên để thêm, hoặc gắn tab giáo án cho lớp.</p>') +
+      "<h3>Câu nhận xét thêm</h3>" + chipRow("data-rex", EXTRA_LABEL, function (v) { return ex.indexOf(v) >= 0; }) +
+      '<details style="margin-top:8px"><summary class="hint">Gõ thêm nhận xét riêng (không bắt buộc)</summary>' +
+      '<label for="rf-hwn-' + sid + '">Nhận xét riêng về bài tập<input id="rf-hwn-' + sid + '" data-rf="hwNote" maxlength="300" value="' + esc(r.hwNote || "") + '"></label>' +
+      '<label for="rf-note-' + sid + '">Ghi chú thêm<input id="rf-note-' + sid + '" data-rf="note" maxlength="300" value="' + esc(r.note || "") + '"></label></details>';
+  }
+  $("reviewList").innerHTML = '<div class="rv" data-sid="' + sid + '"><div class="title" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + esc(titleName(h.name)) + (h.code ? ' <span class="chip hint">' + esc(h.code) + "</span>" : "") + audSeg + '</div><div class="rv-detail"><div>' + form + "</div>" +
+    '<div><textarea id="rt-' + sid + '" aria-label="Lời nhận xét">' + esc(reviewText(h, c, date, r)) + '</textarea><div class="actions" style="margin-top:8px"><button class="btn" type="button" data-rcopy="' + sid + '">Sao chép</button><button class="btn quiet" type="button" data-rnext="1">Học viên tiếp</button></div></div></div></div>';
 }
 async function saveReview(sid, patch) {
   var date = $("rDate").value, id = date + "_" + sid, cur = reviewOf(sid, date);
-  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "" }, cur, patch);
+  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "", ov: "", chep: "", hwScore: "", score: "", hwq: {}, hwErr: [], on: [], extra: [], hwNote: "" }, cur, patch);
   delete body.id;
   var at = state.reviews.findIndex(function (r) { return r.id === id; });
   if (at >= 0) state.reviews[at] = Object.assign({ id: id }, body); else state.reviews.push(Object.assign({ id: id }, body));
   var h = state.students.filter(function (x) { return x.id === sid; })[0], c = state.classes.filter(function (x) { return x.id === body.classId; })[0];
   if (h && c && $("rt-" + sid)) $("rt-" + sid).value = reviewText(h, c, date, body);
+  if (c) renderResults(c, date);
   try { await db.doc("reviews/" + id).set(body); } catch (x) { $("rStatus").textContent = "Chưa lưu được. Kiểm tra mạng rồi thử lại."; }
 }
-function copyText(text, el) {
-  function done() { $("rStatus").textContent = "Đã sao chép."; }
+async function saveSession(patch) {
+  var cid = $("rClass").value, date = $("rDate").value, id = date + "_" + cid, cur = sessionOf(cid, date);
+  if (!cid || !date) return;
+  var body = Object.assign({ date: date, classId: cid }, cur, patch);
+  delete body.id;
+  var i = state.sessions.findIndex(function (r) { return r.id === id; });
+  if (i >= 0) state.sessions[i] = Object.assign({ id: id }, body); else state.sessions.push(Object.assign({ id: id }, body));
+  try { await db.doc("sessions/" + id).set(body); } catch (x) { $("rStatus").textContent = "Chưa lưu được. Kiểm tra mạng rồi thử lại."; }
+}
+function copyText(text, el, msg) {
+  function done() { $("rStatus").textContent = msg || "Đã sao chép."; }
   function pick() { if (el) { el.focus(); el.select(); } $("rStatus").textContent = "Đã chọn nội dung. Nhấn Ctrl+C để sao chép."; }
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, pick); else pick();
 }
 $("rClass").addEventListener("change", renderReview);
+$("rShowPlan").addEventListener("click", function () { showPlan($("rClass").value, Number(this.dataset.n)); });
 $("rDate").addEventListener("change", renderReview);
+$("sessBox").addEventListener("input", function () { state.reviewTyping = true; });
+$("sessBox").addEventListener("change", function (e) {
+  var f = e.target.getAttribute("data-sf");
+  state.reviewTyping = false;
+  if (!f) return;
+  var patch = {}; patch[f] = e.target.value.trim();
+  state.reviewEdited = true;
+  saveSession(patch).then(renderReview);
+});
+$("reviewList").addEventListener("input", function (e) { if (e.target.getAttribute("data-rf")) state.reviewTyping = true; });
 $("reviewList").addEventListener("change", function (e) {
-  var sid = e.target.getAttribute("data-rnote");
-  if (sid) saveReview(sid, { note: e.target.value.trim() });
+  var f = e.target.getAttribute("data-rf"), box = e.target.closest(".rv");
+  state.reviewTyping = false;
+  if (!f || !box) return;
+  var patch = {}; patch[f] = e.target.value.trim();
+  state.reviewEdited = true;
+  saveReview(box.dataset.sid, patch);
 });
 function renderReviewSoon() { setTimeout(renderReview, 0); }
 $("rStudents").addEventListener("click", function (e) { var pk = e.target.closest("[data-rpick]"); if (pk) { state.rSel = pk.dataset.rpick; renderReview(); } });
-$("reviewList").addEventListener("click", function (e) {
+function toggleIn(list, v) { list = (Array.isArray(list) ? list : []).slice(); var i = list.indexOf(v); if (i >= 0) list.splice(i, 1); else list.push(v); return list; }
+function toggleLevel(obj, k, v) { var o = Object.assign({}, obj && typeof obj === "object" ? obj : {}); if (o[k] === v) delete o[k]; else o[k] = v; return o; }
+$("reviewList").addEventListener("click", async function (e) {
   var box = e.target.closest(".rv"), sid = box && box.dataset.sid, date = $("rDate").value, r = sid ? reviewOf(sid, date) : {};
-  var pk = e.target.closest("[data-rpick]");
-  if (pk) { state.rSel = pk.dataset.rpick; renderReview(); return; }
   var nx = e.target.closest("[data-rnext]");
   if (nx) {
-    var ids = presentOf($("rClass").value, $("rDate").value).map(function (x) { return x.id; }), at0 = ids.indexOf(state.rSel);
+    var ids = studentsOf($("rClass").value).filter(function (h) { return reviewOf(h.id, date).dd; }).map(function (x) { return x.id; }), at0 = ids.indexOf(state.rSel);
     state.rSel = ids[(at0 + 1) % ids.length]; renderReview(); return;
   }
-  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt]");
+  var au = e.target.closest("[data-raud]");
+  if (au && sid) {
+    var hs = state.students.filter(function (x) { return x.id === sid; })[0];
+    if (hs) { hs.audience = au.dataset.raud; renderReview(); try { await db.doc("students/" + sid).update({ audience: au.dataset.raud }); } catch (x) { saveFail(); } }
+    return;
+  }
+  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt],[data-rov],[data-rchep],[data-rhwq],[data-rerr],[data-ron],[data-rex]");
   if (b && sid) {
-    var patch = {};
-    if (b.dataset.rhw) patch.hw = r.hw === b.dataset.rhw ? "" : b.dataset.rhw;
-    if (b.dataset.rat) { var list = (Array.isArray(r.at) ? r.at : []).slice(), i = list.indexOf(b.dataset.rat); if (i >= 0) list.splice(i, 1); else list.push(b.dataset.rat); patch.at = list; }
-    if (b.dataset.rkt) { var k = Object.assign({}, r.kt && typeof r.kt === "object" ? r.kt : {}); if (k[b.dataset.rkt] === b.dataset.val) delete k[b.dataset.rkt]; else k[b.dataset.rkt] = b.dataset.val; patch.kt = k; }
+    var d = b.dataset, patch = {};
+    if (d.rhw) patch.hw = r.hw === d.rhw ? "" : d.rhw;
+    if (d.rov) patch.ov = r.ov === d.rov ? "" : d.rov;
+    if (d.rchep) patch.chep = r.chep === d.rchep ? "" : d.rchep;
+    if (d.rat) patch.at = toggleIn(r.at, d.rat);
+    if (d.rerr) patch.hwErr = toggleIn(r.hwErr, d.rerr);
+    if (d.ron) patch.on = toggleIn(r.on, d.ron);
+    if (d.rex) patch.extra = toggleIn(r.extra, d.rex);
+    if (d.rkt) patch.kt = toggleLevel(r.kt, d.rkt, d.val);
+    if (d.rhwq) patch.hwq = toggleLevel(r.hwq, d.rhwq, d.val);
     state.reviewEdited = true;
     saveReview(sid, patch).then(renderReview);
     renderReviewSoon();
@@ -1740,9 +2021,14 @@ $("attAll").addEventListener("click", async function () {
 $("rCopyAll").addEventListener("click", function () {
   var c = state.classes.filter(function (x) { return x.id === $("rClass").value; })[0], date = $("rDate").value;
   if (!c) return;
-  var text = presentOf(c.id, date).map(function (h) { return reviewText(h, c, date, reviewOf(h.id, date)); }).join("\n\n");
-  if (!text) { $("rStatus").textContent = "Chưa có học viên có mặt để sao chép."; return; }
+  var text = studentsOf(c.id).filter(function (h) { return reviewOf(h.id, date).dd; }).map(function (h) { return reviewText(h, c, date, reviewOf(h.id, date)); }).join("\n\n----------\n\n");
+  if (!text) { $("rStatus").textContent = "Chưa điểm danh học viên nào để sao chép."; return; }
   copyText(text, $("reviewList").querySelector("textarea"));
+});
+$("rCopyTable").addEventListener("click", function () {
+  var c = state.classes.filter(function (x) { return x.id === $("rClass").value; })[0], date = $("rDate").value;
+  if (!c || !date) return;
+  copyText(resultTsv(c, date), null, "Đã sao chép bảng. Mở Google Sheets, bấm vào ô đầu tiên rồi dán (Ctrl+V).");
 });
 
 function resetClassForm() {
@@ -1817,12 +2103,12 @@ function startApp() {
   var load = $("loadStatus");
   var timer = setTimeout(function () { load.textContent = "Chưa tải được dữ liệu. Kiểm tra mạng rồi bấm Tải lại."; load.hidden = false; }, 10000);
   db.doc("settings/prompts").onSnapshot(function (d) { state.prompts = d.exists ? d.data() : {}; render(); });
-  ["lessons", "classes", "tasks", "notes", "settings", "students", "reviews"].forEach(function (name) {
+  ["lessons", "classes", "tasks", "notes", "settings", "students", "reviews", "sessions"].forEach(function (name) {
     db.collection(name).onSnapshot(function (snap) {
       state[name] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       clearTimeout(timer); load.hidden = true;
       if (name === "settings") state.ready = true;
-      if ((name === "classes" || name === "students" || name === "reviews") && !state.reviewEdited) { fillReviewClasses(); renderReview(); }
+      if ((name === "classes" || name === "students" || name === "reviews" || name === "sessions") && !state.reviewEdited) { fillReviewClasses(); renderReview(); }
       render(); renderGmailInfo();
     });
   });
