@@ -272,6 +272,13 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 .sw[aria-pressed="true"] { border-color: var(--c, var(--accent)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c, var(--accent)) 35%, transparent); font-weight: 600; }
 .fbtn.cdot::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-right: 5px; vertical-align: 1px; }
 .att-box > summary { cursor: pointer; }
+.hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 6px; }
+.hs-card { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.hs-card b { font-size: 20px; }
+.hs-card span { font-size: 12px; color: var(--muted); }
+.hs-card.warn b { color: var(--danger); }
+#hdBody h3 { margin: 14px 0 6px; font-size: 15px; }
+#hdBody textarea { width: 100%; }
 .rs-wrap { overflow-x: auto; margin-top: 8px; }
 .rs { width: 100%; border-collapse: collapse; font-size: 13px; }
 .rs th { background: #3f7a2b; color: #fff; font-weight: 600; padding: 6px 8px; text-align: left; white-space: nowrap; }
@@ -626,6 +633,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 <div id="toasts" aria-live="polite"></div>
 
 <dialog id="planDlg" class="plandlg" aria-labelledby="pdTitle"><div class="pdhead"><div><b id="pdTitle">Giáo án</b><small id="pdSub"></small><div class="pdnav"><button class="link" type="button" id="pdPrev">‹ Buổi trước</button><button class="link" type="button" id="pdNext">Buổi sau ›</button></div></div><button class="btn quiet" type="button" id="pdClose">Đóng</button></div><div class="pdbody" id="pdBody"></div></dialog>
+<dialog id="histDlg" class="plandlg" aria-labelledby="hdTitle"><div class="pdhead"><div><b id="hdTitle">Lịch sử học</b><small id="hdSub"></small></div><div class="actions"><button class="btn sm" type="button" id="hdCopy">Sao chép nhận xét tổng kết</button><button class="btn quiet" type="button" id="hdClose">Đóng</button></div></div><div class="pdbody" id="hdBody"></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>window.supabase || document.write('<script src="/supabase.js"><\/script>');</script>
 <script>
@@ -1254,6 +1262,7 @@ function render() {
     if (h.done) meta += "<span>Đã dạy " + h.done + " buổi</span>";
     var absN = state.reviews.filter(function (r) { return r.studentId === h.id && (r.dd === "phep" || r.dd === "khong"); }).length;
     if (absN) meta += '<span class="chip warn">Vắng ' + absN + " buổi</span>";
+    if (state.reviews.some(function (r) { return r.studentId === h.id; })) meta += '<button class="link" type="button" data-act="history" data-id="' + esc(h.id) + '">Lịch sử</button>';
     meta += '<button class="link" type="button" data-act="editStudent" data-id="' + esc(h.id) + '">' + (h.kyna ? "Ghi chú" : "Sửa") + "</button>";
     if (!h.kyna) meta += delBtn("students", h.id);
     var more = (h.last ? "<div>Gần nhất: " + dayLabel(h.last.date) + " · " + esc(h.last.lesson) + "</div>" : "") + (h.next ? "<div>Buổi tới: " + dayLabel(h.next.date) + " " + hm(h.next.date) + " · " + esc(h.next.lesson) + "</div>" : "") + (function () {
@@ -1393,6 +1402,7 @@ document.addEventListener("click", async function (ev) {
     }
     if (act === "editClass") { editClass(id); return; }
     if (act === "editStudent") { editStudent(id); return; }
+    if (act === "history") { showHistory(id); return; }
     if (act === "classDone") {
       var dn = el.dataset.val === "1";
       if (el.dataset.src === "kyna") {
@@ -1753,6 +1763,9 @@ function reviewText(h, c, date, r) {
   }
   if (cl.length) lines.push("• Trên lớp: " + cl.join(" "));
   if (words.length) lines.push("• Từ cần ôn và luyện viết: " + words.join("; ") + ".");
+  var cy = carryOf(h.id, date, r);
+  if (cy.done.length) lines.push(T("• Ôn lại từ buổi trước: {con} đã nhớ " + cy.done.map(vocabHead).join(", ") + (cy.still.length ? "; còn cần ôn thêm " + cy.still.map(vocabFmt).join("; ") : "") + "."));
+  else if (cy.still.length) lines.push("• Từ các buổi trước cần ôn tiếp: " + cy.still.map(vocabFmt).join("; ") + ".");
   var ex = (Array.isArray(r.extra) ? r.extra : []).filter(function (k) { return EXTRA[k]; }).map(function (k) { return T(EXTRA[k]); });
   if (ex.length || r.note) lines.push("• " + ex.concat(r.note ? [r.note] : []).join(" "));
   if (s.hwGiven) lines.push("• Bài tập về nhà buổi tới: " + s.hwGiven);
@@ -1761,7 +1774,7 @@ function reviewText(h, c, date, r) {
   if (r.hw === "chua" || r.hw === "khonglam") ask.push("hoàn thành bài tập còn thiếu");
   if (r.hw === "khongmang") ask.push("chuẩn bị bài tập vào cặp trước buổi học");
   if (r.chep === "chua") ask.push("chép từ vựng");
-  if (words.length) ask.push("luyện viết lại các từ cần ôn");
+  if (words.length || cy.still.length) ask.push("luyện viết lại các từ cần ôn");
   if (hq.pinyin === "can" || hq.thanh === "can" || kt.pinyin === "can" || errs.some(function (k) { return HWERR_GROUPS[1][1][k]; })) ask.push("đọc lại phiên âm cùng audio bài học");
   if (k2.can.length) ask.push("ôn lại phần " + joinVi(k2.can));
   lines.push("");
@@ -1770,6 +1783,125 @@ function reviewText(h, c, date, r) {
   return lines.join("\n");
 }
 /* Bảng kết quả cả lớp, giống bảng theo dõi trên Google Sheets. */
+/* ===== Lịch sử học viên + từ cần ôn chuyển sang buổi sau (23/11/2026) ===== */
+function reviewsOfStudent(sid) {
+  return state.reviews.filter(function (r) { return r.studentId === sid && r.date; }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
+}
+/* Từ còn phải ôn trước ngày `date`: cộng dồn "từ cần ôn" của các buổi trước, bỏ đi những từ đã được đánh dấu "đã thuộc". */
+function wkey(w) { return String(vocabHead(w)).trim().split(/\s+/)[0]; }
+function hasKey(list, w) { var k = wkey(w); return (Array.isArray(list) ? list : []).some(function (x) { return wkey(x) === k; }); }
+/* Từ còn phải ôn trước ngày `date`: cộng dồn "từ cần ôn" của các buổi trước, bỏ đi từ đã được đánh dấu "đã nhớ". So khớp theo chữ Hán. */
+function pendingWords(sid, date) {
+  var set = [];
+  reviewsOfStudent(sid).forEach(function (r) {
+    if (String(r.date) >= String(date)) return;
+    (Array.isArray(r.on) ? r.on : []).forEach(function (w) { if (!hasKey(set, w)) set.push(w); });
+    (Array.isArray(r.onDone) ? r.onDone : []).forEach(function (w) { set = set.filter(function (x) { return wkey(x) !== wkey(w); }); });
+  });
+  return set;
+}
+function carryOf(sid, date, r) {
+  var pend = pendingWords(sid, date).filter(function (w) { return !hasKey(r.on, w); });
+  return { all: pend, done: pend.filter(function (w) { return hasKey(r.onDone, w); }), still: pend.filter(function (w) { return !hasKey(r.onDone, w); }) };
+}
+function numOf(v) { var n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
+function fmtNum(n) { return (Math.round(n * 10) / 10).toString().replace(".", ","); }
+function ddmm(date) { var d = toDate(date); return pad(d.getDate()) + "/" + pad(d.getMonth() + 1); }
+function historyData(sid) {
+  var rows = reviewsOfStudent(sid).filter(function (r) { return r.dd; });
+  var o = { rows: rows, n: rows.length, co: 0, muon: 0, phep: 0, khong: 0, hw: { du: 0, chua: 0, khonglam: 0, khongmang: 0 }, hwN: 0, chepChua: 0, hwPct: [], testPct: [], hwRaw: [], testRaw: [], err: {}, kt: {} };
+  rows.forEach(function (r) {
+    if (o[r.dd] !== undefined) o[r.dd]++;
+    if (r.dd === "phep" || r.dd === "khong") return;
+    if (o.hw[r.hw] !== undefined) { o.hw[r.hw]++; o.hwN++; }
+    if (r.chep === "chua") o.chepChua++;
+    var s = sessionOf(r.classId, r.date), hs = numOf(r.hwScore), ts = numOf(r.score), mh = numOf(s.maxHw), mt = numOf(s.maxTest);
+    if (hs != null) { o.hwRaw.push(r); if (mh) o.hwPct.push(hs / mh); }
+    if (ts != null) { o.testRaw.push(r); if (mt) o.testPct.push(ts / mt); }
+    (Array.isArray(r.hwErr) ? r.hwErr : []).forEach(function (k) { if (HWERR[k]) o.err[k] = (o.err[k] || 0) + 1; });
+    var kt = r.kt && typeof r.kt === "object" ? r.kt : {};
+    Object.keys(kt).forEach(function (k) { if (!SKILLS[k] || !LEVELS[kt[k]]) return; o.kt[k] = o.kt[k] || { tot: 0, kha: 0, can: 0, last: "" }; o.kt[k][kt[k]]++; o.kt[k].last = kt[k]; });
+  });
+  o.errTop = Object.keys(o.err).sort(function (a, b) { return o.err[b] - o.err[a]; });
+  o.pending = pendingWords(sid, "9999-12-31");
+  return o;
+}
+function avg(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
+function historyText(h, o) {
+  var hv = audienceOf(h) === "hv";
+  function T(t) { return t.replace(/\{Con\}/g, hv ? "Em" : "Con").replace(/\{con\}/g, hv ? "em" : "con"); }
+  var L = [], present = o.co + o.muon;
+  L.push("Nhận xét tổng kết - Học viên " + titleName(h.name));
+  if (o.n) L.push("Thời gian: " + ddmm(o.rows[0].date) + " đến " + ddmm(o.rows[o.rows.length - 1].date) + " (" + o.n + " buổi)");
+  L.push("");
+  if (!o.n) { L.push("Chưa có buổi học nào được điểm danh."); return L.join("\n"); }
+  var cc = T("{Con} đi học " + present + "/" + o.n + " buổi");
+  var ex = [];
+  if (o.phep) ex.push("vắng có phép " + o.phep);
+  if (o.khong) ex.push("vắng không phép " + o.khong);
+  if (o.muon) ex.push("đi muộn " + o.muon);
+  L.push("• Chuyên cần: " + cc + (ex.length ? " (" + ex.join(", ") + ")" : "") + (present === o.n && !o.muon ? T(", rất đều đặn, cô khen {con}!") : "."));
+  if (o.hwN) {
+    var hw = [T("{Con} làm đầy đủ bài tập " + o.hw.du + "/" + o.hwN + " buổi")];
+    if (o.hw.chua) hw.push("làm chưa hết " + o.hw.chua + " buổi");
+    if (o.hw.khonglam) hw.push("không làm " + o.hw.khonglam + " buổi");
+    if (o.hw.khongmang) hw.push("quên mang " + o.hw.khongmang + " buổi");
+    var t = hw.join(", ");
+    if (o.chepChua) t += T("; có " + o.chepChua + " buổi {con} chưa chép từ vựng");
+    var ah = avg(o.hwPct);
+    if (ah != null) t += ". Điểm bài tập trung bình đạt " + fmtNum(ah * 100) + "%";
+    L.push("• Bài tập về nhà: " + t + ".");
+  }
+  var at = avg(o.testPct);
+  if (at != null) L.push(T("• Kiểm tra trên lớp: điểm trung bình đạt " + fmtNum(at * 100) + "% (" + o.testPct.length + " bài)" + (at >= 0.85 ? ", {con} nắm bài rất tốt." : at >= 0.65 ? ", {con} nắm bài khá tốt." : ", {con} cần ôn bài kỹ hơn.")));
+  var strong = [], weak = [];
+  Object.keys(o.kt).forEach(function (k) { var x = o.kt[k]; if (x.tot >= Math.max(1, x.can + x.kha)) strong.push(lowerFirst(SKILLS[k])); else if (x.can >= Math.max(1, x.tot)) weak.push(lowerFirst(SKILLS[k])); });
+  if (strong.length) L.push(T("• Điểm mạnh: {con} làm tốt phần " + joinVi(strong) + "."));
+  if (weak.length) L.push(T("• Cần cải thiện: {con} cần luyện thêm phần " + joinVi(weak) + "."));
+  var rep = o.errTop.filter(function (k) { return o.err[k] >= 2; }).slice(0, 4);
+  if (rep.length) L.push(T("• Lỗi {con} hay lặp lại: " + rep.map(function (k) { return lowerFirst(HWERR[k]) + " (" + o.err[k] + " lần)"; }).join(", ") + "."));
+  if (o.pending.length) L.push("• Từ cần tiếp tục ôn: " + o.pending.map(vocabFmt).join("; ") + ".");
+  L.push("");
+  var ask = [];
+  if (o.hw.khonglam + o.hw.chua >= 2) ask.push("làm bài tập đều đặn hơn");
+  if (o.chepChua >= 2) ask.push("chép từ vựng sau mỗi buổi");
+  if (rep.some(function (k) { return HWERR_GROUPS[1][1][k]; })) ask.push("luyện đọc và viết phiên âm cùng audio bài học");
+  if (o.pending.length) ask.push("ôn lại các từ còn yếu");
+  if (hv) L.push(ask.length ? "Em nhớ " + joinVi(ask) + " nhé. Cô tin em sẽ tiến bộ nhanh!" : "Em đã học rất chăm chỉ, giữ vững phong độ này nhé!");
+  else L.push(ask.length ? "Nhờ phụ huynh nhắc con " + joinVi(ask) + " giúp cô nhé. Cô cảm ơn phụ huynh đã đồng hành cùng con ạ!" : "Con đã học rất chăm chỉ. Cô cảm ơn phụ huynh đã đồng hành cùng con ạ!");
+  return L.join("\n");
+}
+var HIST_CUR = null;
+function showHistory(sid) {
+  var h = state.students.filter(function (x) { return x.id === sid; })[0];
+  if (!h) return;
+  HIST_CUR = sid;
+  var o = historyData(sid), present = o.co + o.muon;
+  $("hdTitle").textContent = "Lịch sử học · " + titleName(h.name);
+  $("hdSub").textContent = o.n ? o.n + " buổi đã điểm danh" : "Chưa có buổi nào";
+  var stat = function (lab, val, cls) { return '<div class="hs-card' + (cls ? " " + cls : "") + '"><b>' + val + "</b><span>" + lab + "</span></div>"; };
+  var ah = avg(o.hwPct), at = avg(o.testPct);
+  var html = '<div class="hs-grid">' + stat("Có mặt", present + "/" + o.n) + stat("Vắng", o.phep + o.khong, o.phep + o.khong ? "warn" : "") + stat("Làm đủ BTVN", o.hw.du + "/" + o.hwN) + stat("Không làm BTVN", o.hw.khonglam, o.hw.khonglam ? "warn" : "") + stat("Điểm BTVN TB", ah != null ? fmtNum(ah * 100) + "%" : "–") + stat("Điểm KT TB", at != null ? fmtNum(at * 100) + "%" : "–") + "</div>";
+  if (o.errTop.length) html += "<h3>Lỗi lặp lại</h3><div class=\"filters\">" + o.errTop.slice(0, 10).map(function (k) { return '<span class="chip' + (o.err[k] >= 2 ? " warn" : "") + '">' + esc(HWERR[k]) + " ×" + o.err[k] + "</span>"; }).join("") + "</div>";
+  var kk = Object.keys(o.kt);
+  if (kk.length) html += "<h3>Kiến thức qua các buổi</h3><div class=\"rs-wrap\"><table class=\"rs\"><thead><tr><th>Kỹ năng</th><th>Tốt</th><th>Khá</th><th>Cần cố gắng</th><th>Buổi gần nhất</th></tr></thead><tbody>" + kk.map(function (k) { var x = o.kt[k]; return "<tr><td>" + esc(SKILLS[k]) + '</td><td class="n">' + x.tot + '</td><td class="n">' + x.kha + '</td><td class="n">' + x.can + "</td><td>" + esc(LEVELS[x.last] || "") + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  if (o.pending.length) html += "<h3>Từ còn cần ôn (" + o.pending.length + ")</h3><div class=\"rs-vocab\">" + esc(o.pending.map(vocabFmt).join("\n")) + "</div>";
+  if (o.n) html += "<h3>Từng buổi</h3><div class=\"rs-wrap\"><table class=\"rs\"><thead><tr><th>Ngày</th><th>Lớp</th><th>BTVN</th><th>Chép từ</th><th>Điểm BTVN</th><th>Điểm KT</th><th>Lỗi</th><th>Từ cần ôn</th></tr></thead><tbody>" +
+    o.rows.slice().reverse().map(function (r) {
+      var c = state.classes.filter(function (x) { return x.id === r.classId; })[0], s = sessionOf(r.classId, r.date), p = hwPill(r), off = r.dd === "phep" || r.dd === "khong";
+      return '<tr><td class="n">' + ddmm(r.date) + "</td><td>" + esc(c ? c.name : "") + '</td><td><span class="pill ' + p[0] + '">' + esc(p[1]) + "</span>" + (r.dd === "muon" ? ' <span class="hint">muộn</span>' : "") + "</td><td>" + esc(off ? "" : (CHEP[r.chep] || "")) + '</td><td class="n">' + esc(off ? "" : scoreText(r.hwScore, s.maxHw)) + '</td><td class="n">' + esc(off ? "" : scoreText(r.score, s.maxTest)) + "</td><td>" + esc((Array.isArray(r.hwErr) ? r.hwErr : []).filter(function (k) { return HWERR[k]; }).map(function (k) { return HWERR[k]; }).join(", ")) + "</td><td>" + esc((Array.isArray(r.on) ? r.on : []).map(vocabHead).join(", ")) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+  html += "<h3>Nhận xét tổng kết</h3><textarea id=\"hdText\" aria-label=\"Nhận xét tổng kết\" style=\"min-height:220px\">" + esc(historyText(h, o)) + "</textarea>";
+  $("hdBody").innerHTML = html;
+  var d = $("histDlg");
+  if (d.showModal && !d.open) d.showModal(); else d.setAttribute("open", "");
+}
+$("hdClose").addEventListener("click", function () { $("histDlg").close ? $("histDlg").close() : $("histDlg").removeAttribute("open"); });
+$("hdCopy").addEventListener("click", function () {
+  var t = $("hdText"); if (!t) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(function () { $("hdCopy").textContent = "Đã sao chép"; setTimeout(function () { $("hdCopy").textContent = "Sao chép nhận xét tổng kết"; }, 1500); }, function () { t.focus(); t.select(); });
+  else { t.focus(); t.select(); }
+});
 function resultRows(c, date) {
   var s = sessionOf(c.id, date);
   return studentsOf(c.id).map(function (h, i) {
@@ -1779,7 +1911,7 @@ function resultRows(c, date) {
     if (r.hwNote) cmt += (cmt ? " " : "") + r.hwNote;
     if (r.note) cmt += (cmt ? " " : "") + r.note;
     if (off && !cmt) cmt = r.dd === "phep" ? "Vắng có phép" : "Vắng không phép";
-    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).join("; "), cmt: cmt };
+    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).concat(carryOf(h.id, date, r).still.map(function (w) { return vocabFmt(w) + " (ôn tiếp)"; })).join("; "), cmt: cmt };
   });
 }
 function renderResults(c, date) {
@@ -1912,18 +2044,24 @@ function renderReview() {
       "<h3>Thái độ trên lớp</h3>" + chipRow("data-rat", ATT, function (v) { return at.indexOf(v) >= 0; }) +
       "<h3>Kiến thức trên lớp</h3>" + levelGrid("data-rkt", SKILLS, kt) +
       '<label class="num" style="margin-top:6px">Điểm kiểm tra <input type="number" inputmode="decimal" min="0" data-rf="score" value="' + esc(r.score == null ? "" : r.score) + '">' + (s.maxTest ? "/" + esc(s.maxTest) : "") + "</label>" +
-      "<h3>Từ cần ôn & luyện viết</h3>" + (vocab.length ? chipRow("data-ron", vmap, function (v) { return on.indexOf(v) >= 0; }) : '<p class="hint">Chưa có từ vựng của buổi này. Mở mục "Nội dung buổi học" ở trên để thêm, hoặc gắn tab giáo án cho lớp.</p>') +
+      (function () {
+        var cy = carryOf(h.id, date, r);
+        if (!cy.all.length) return "";
+        var m = {}; cy.all.forEach(function (w) { m[w] = (cy.done.indexOf(w) >= 0 ? "✓ " : "") + vocabHead(w); });
+        return "<h3>Ôn lại từ buổi trước (" + cy.all.length + ")</h3><p class=\"hint\" style=\"margin:0 0 4px\">Bấm vào từ con đã nhớ. Từ chưa bấm sẽ được nhắc tiếp ở buổi sau.</p>" + chipRow("data-rok", m, function (v) { return cy.done.indexOf(v) >= 0; });
+      })() +
+      "<h3>Từ cần ôn & luyện viết hôm nay</h3>" + (vocab.length ? chipRow("data-ron", vmap, function (v) { return on.indexOf(v) >= 0; }) : '<p class="hint">Chưa có từ vựng của buổi này. Mở mục "Nội dung buổi học" ở trên để thêm, hoặc gắn tab giáo án cho lớp.</p>') +
       "<h3>Câu nhận xét thêm</h3>" + chipRow("data-rex", EXTRA_LABEL, function (v) { return ex.indexOf(v) >= 0; }) +
       '<details style="margin-top:8px"><summary class="hint">Gõ thêm nhận xét riêng (không bắt buộc)</summary>' +
       '<label for="rf-hwn-' + sid + '">Nhận xét riêng về bài tập<input id="rf-hwn-' + sid + '" data-rf="hwNote" maxlength="300" value="' + esc(r.hwNote || "") + '"></label>' +
       '<label for="rf-note-' + sid + '">Ghi chú thêm<input id="rf-note-' + sid + '" data-rf="note" maxlength="300" value="' + esc(r.note || "") + '"></label></details>';
   }
-  $("reviewList").innerHTML = '<div class="rv" data-sid="' + sid + '"><div class="title" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + esc(titleName(h.name)) + (h.code ? ' <span class="chip hint">' + esc(h.code) + "</span>" : "") + audSeg + '</div><div class="rv-detail"><div>' + form + "</div>" +
+  $("reviewList").innerHTML = '<div class="rv" data-sid="' + sid + '"><div class="title" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + esc(titleName(h.name)) + (h.code ? ' <span class="chip hint">' + esc(h.code) + "</span>" : "") + '<button class="link" type="button" data-rhist="' + sid + '">Lịch sử</button>' + audSeg + '</div><div class="rv-detail"><div>' + form + "</div>" +
     '<div><textarea id="rt-' + sid + '" aria-label="Lời nhận xét">' + esc(reviewText(h, c, date, r)) + '</textarea><div class="actions" style="margin-top:8px"><button class="btn" type="button" data-rcopy="' + sid + '">Sao chép</button><button class="btn quiet" type="button" data-rnext="1">Học viên tiếp</button></div></div></div></div>';
 }
 async function saveReview(sid, patch) {
   var date = $("rDate").value, id = date + "_" + sid, cur = reviewOf(sid, date);
-  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "", ov: "", chep: "", hwScore: "", score: "", hwq: {}, hwErr: [], on: [], extra: [], hwNote: "" }, cur, patch);
+  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "", ov: "", chep: "", hwScore: "", score: "", hwq: {}, hwErr: [], on: [], onDone: [], extra: [], hwNote: "" }, cur, patch);
   delete body.id;
   var at = state.reviews.findIndex(function (r) { return r.id === id; });
   if (at >= 0) state.reviews[at] = Object.assign({ id: id }, body); else state.reviews.push(Object.assign({ id: id }, body));
@@ -1978,13 +2116,15 @@ $("reviewList").addEventListener("click", async function (e) {
     var ids = studentsOf($("rClass").value).filter(function (h) { return reviewOf(h.id, date).dd; }).map(function (x) { return x.id; }), at0 = ids.indexOf(state.rSel);
     state.rSel = ids[(at0 + 1) % ids.length]; renderReview(); return;
   }
+  var hb = e.target.closest("[data-rhist]");
+  if (hb) { showHistory(hb.dataset.rhist); return; }
   var au = e.target.closest("[data-raud]");
   if (au && sid) {
     var hs = state.students.filter(function (x) { return x.id === sid; })[0];
     if (hs) { hs.audience = au.dataset.raud; renderReview(); try { await db.doc("students/" + sid).update({ audience: au.dataset.raud }); } catch (x) { saveFail(); } }
     return;
   }
-  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt],[data-rov],[data-rchep],[data-rhwq],[data-rerr],[data-ron],[data-rex]");
+  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt],[data-rov],[data-rchep],[data-rhwq],[data-rerr],[data-ron],[data-rex],[data-rok]");
   if (b && sid) {
     var d = b.dataset, patch = {};
     if (d.rhw) patch.hw = r.hw === d.rhw ? "" : d.rhw;
@@ -1994,6 +2134,7 @@ $("reviewList").addEventListener("click", async function (e) {
     if (d.rerr) patch.hwErr = toggleIn(r.hwErr, d.rerr);
     if (d.ron) patch.on = toggleIn(r.on, d.ron);
     if (d.rex) patch.extra = toggleIn(r.extra, d.rex);
+    if (d.rok) patch.onDone = toggleIn(r.onDone, d.rok);
     if (d.rkt) patch.kt = toggleLevel(r.kt, d.rkt, d.val);
     if (d.rhwq) patch.hwq = toggleLevel(r.hwq, d.rhwq, d.val);
     state.reviewEdited = true;
