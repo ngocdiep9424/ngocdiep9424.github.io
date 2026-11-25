@@ -235,6 +235,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 .kt-grid { display: grid; gap: 4px; }
 .kt-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; font-size: 14px; }
 .seg.sm button { padding: 3px 9px; font-size: 12px; }
+.seg.wrap { flex-wrap: wrap; justify-content: flex-end; }
 .rv h3 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 6px 0 2px; text-transform: uppercase; letter-spacing: .05em; }
 .task.tc { grid-template-columns: minmax(0, 1fr); border-left: 4px solid var(--tc, transparent); padding-left: 10px; border-radius: 4px; }
 .task.tc[style] { background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 10%, transparent), transparent 70%); }
@@ -664,6 +665,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 
 <dialog id="planDlg" class="plandlg" aria-labelledby="pdTitle"><div class="pdhead"><div><b id="pdTitle">Giáo án</b><small id="pdSub"></small><div class="pdnav"><button class="link" type="button" id="pdPrev">‹ Buổi trước</button><button class="link" type="button" id="pdNext">Buổi sau ›</button></div></div><button class="btn quiet" type="button" id="pdClose">Đóng</button></div><div class="pdbody" id="pdBody"></div></dialog>
 <dialog id="histDlg" class="plandlg" aria-labelledby="hdTitle"><div class="pdhead"><div><b id="hdTitle">Lịch sử học</b><small id="hdSub"></small></div><div class="actions"><button class="btn sm" type="button" id="hdCopy">Sao chép nhận xét tổng kết</button><button class="btn quiet" type="button" id="hdClose">Đóng</button></div></div><div class="pdbody" id="hdBody"></div></dialog>
+<div id="shotView" hidden><div class="shot-bar"><span class="hint" id="shotHint"></span><button class="btn quiet sm" type="button" id="shotClose">Đóng</button></div><div class="shot-body" id="shotBody"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>window.supabase || document.write('<script src="/supabase.js"><\/script>');</script>
 <script>
@@ -690,6 +692,11 @@ var HWERR_GROUPS = [
 ];
 var HWERR = {}; HWERR_GROUPS.forEach(function (g) { Object.assign(HWERR, g[1]); });
 var CHEP = { co: "Đã chép từ vựng", chua: "Chưa chép từ vựng" };
+/* Sách vở, ghi chép bài trên lớp và clip bài tập về nhà: [nhãn nút, câu nhận xét, tốt?, chữ ngắn cho bảng]. */
+var SACH = { du: ["Đủ", "mang đủ sách vở", 1, "Đủ sách vở"], thieusach: ["Quên sách", "quên mang sách", 0, "Quên sách"], thieuvo: ["Quên vở", "quên mang vở", 0, "Quên vở"], khong: ["Không mang", "không mang sách vở", 0, "Không mang sách vở"] };
+var GHI = { tot: ["Đủ, đẹp", "ghi chép bài đầy đủ, sạch đẹp", 1, "Ghi chép đủ, đẹp"], du: ["Đủ", "ghi chép bài đầy đủ", 1, "Ghi chép đủ"], chua: ["Chưa đủ", "ghi chép bài chưa đầy đủ", 0, "Ghi chép chưa đủ"], khong: ["Không ghi", "chưa ghi chép bài", 0, "Không ghi chép"] };
+var CLIP = { dung: ["Đúng hạn", "{Con} đã nộp clip bài tập đúng hạn.", 1, "Clip đúng hạn"], muon: ["Nộp muộn", "{Con} có nộp clip bài tập nhưng còn muộn.", 0, "Clip nộp muộn"], quaylai: ["Cần quay lại", "Clip bài tập của {con} chưa đạt, {con} cần quay lại.", 0, "Clip cần quay lại"], chua: ["Chưa nộp", "{Con} chưa nộp clip bài tập.", 0, "Chưa nộp clip"] };
+function segRow(label, attr, map, val) { return '<div class="kt-row" style="margin-top:4px"><span>' + label + '</span><div class="seg sm wrap">' + Object.keys(map).map(function (k) { return '<button type="button" ' + attr + '="' + k + '" aria-pressed="' + (val === k) + '">' + map[k][0] + "</button>"; }).join("") + "</div></div>"; }
 var HWQ_TXT = { chuhan: "viết chữ Hán", pinyin: "phiên âm", thanh: "dấu thanh", nghia: "nghĩa và ngữ pháp", trinhbay: "trình bày" };
 var OVERALL = { tot: "Rất tốt", kha: "Tốt", tb: "Khá", can: "Cần cố gắng" };
 /* Câu mở đầu theo mức tổng quan; mỗi học viên lấy một câu khác nhau để lời nhắn không lặp. {Con}/{con} đổi thành Em/em khi gửi trực tiếp cho học viên. */
@@ -1775,6 +1782,7 @@ function reviewText(h, c, date, r) {
     if (pin.length) es.push((oth.length ? "về phiên âm thì " : "phần phiên âm còn ") + joinVi(pin.map(function (k) { return lowerFirst(HWERR[k]); })));
     hw.push(T(pick(["Một số lỗi {con} cần sửa: ", "Cô có đánh dấu vài lỗi để {con} sửa: "], seed) + es.join("; ") + "."));
   }
+  if (CLIP[r.clip]) hw.push(T(CLIP[r.clip][1]));
   if (r.hwNote) hw.push(r.hwNote);
   if (hw.length) lines.push("• Bài tập về nhà: " + hw.join(" "));
   // Trên lớp
@@ -1783,6 +1791,8 @@ function reviewText(h, c, date, r) {
   var bad = at.filter(function (k) { return ATT[k] && !ATT[k][1]; }).map(function (k) { return lowerFirst(ATT[k][0]); });
   if (good.length) cl.push(T("{Con} " + joinVi(good) + "."));
   if (bad.length) cl.push(T((good.length ? "Tuy nhiên {con} còn " : "{Con} còn ") + joinVi(bad.map(function (x) { return x.replace(/^còn /, ""); })) + "."));
+  var sg = [SACH[r.sach], GHI[r.ghi]].filter(Boolean);
+  if (sg.length) cl.push(T("{Con} " + (sg.length === 2 ? sg[0][1] + (sg[0][2] === sg[1][2] ? " và " : ", nhưng ") + sg[1][1] : sg[0][1]) + "."));
   var k2 = levelLists(kt, Object.keys(SKILLS).reduce(function (o, k) { o[k] = lowerFirst(SKILLS[k]); return o; }, {}));
   if (k2.tot.length) cl.push(T(pick(["{Con} nắm tốt phần ", "Phần {con} làm tốt là "], seed + 1) + joinVi(k2.tot) + "."));
   if (k2.kha.length) cl.push(T("Phần " + joinVi(k2.kha) + " {con} làm khá."));
@@ -1804,6 +1814,11 @@ function reviewText(h, c, date, r) {
   if (r.hw === "chua" || r.hw === "khonglam") ask.push("hoàn thành bài tập còn thiếu");
   if (r.hw === "khongmang") ask.push("chuẩn bị bài tập vào cặp trước buổi học");
   if (r.chep === "chua") ask.push("chép từ vựng");
+  if (r.clip === "chua") ask.push("nộp clip bài tập");
+  if (r.clip === "quaylai") ask.push("quay lại clip bài tập");
+  if (r.clip === "muon") ask.push("nộp clip bài tập đúng hạn");
+  if (SACH[r.sach] && !SACH[r.sach][2]) ask.push("chuẩn bị đủ sách vở trước buổi học");
+  if (GHI[r.ghi] && !GHI[r.ghi][2]) ask.push("ghi chép bài đầy đủ trên lớp");
   if (words.length || cy.still.length) ask.push("luyện viết lại các từ cần ôn");
   if (hq.pinyin === "can" || hq.thanh === "can" || kt.pinyin === "can" || errs.some(function (k) { return HWERR_GROUPS[1][1][k]; })) ask.push("đọc lại phiên âm cùng audio bài học");
   if (k2.can.length) ask.push("ôn lại phần " + joinVi(k2.can));
@@ -1839,12 +1854,15 @@ function fmtNum(n) { return (Math.round(n * 10) / 10).toString().replace(".", ",
 function ddmm(date) { var d = toDate(date); return pad(d.getDate()) + "/" + pad(d.getMonth() + 1); }
 function historyData(sid) {
   var rows = reviewsOfStudent(sid).filter(function (r) { return r.dd; });
-  var o = { rows: rows, n: rows.length, co: 0, muon: 0, phep: 0, khong: 0, hw: { du: 0, chua: 0, khonglam: 0, khongmang: 0 }, hwN: 0, chepChua: 0, hwPct: [], testPct: [], hwRaw: [], testRaw: [], err: {}, kt: {} };
+  var o = { rows: rows, n: rows.length, co: 0, muon: 0, phep: 0, khong: 0, hw: { du: 0, chua: 0, khonglam: 0, khongmang: 0 }, hwN: 0, chepChua: 0, clipBad: 0, sachBad: 0, ghiBad: 0, hwPct: [], testPct: [], hwRaw: [], testRaw: [], err: {}, kt: {} };
   rows.forEach(function (r) {
     if (o[r.dd] !== undefined) o[r.dd]++;
     if (r.dd === "phep" || r.dd === "khong") return;
     if (o.hw[r.hw] !== undefined) { o.hw[r.hw]++; o.hwN++; }
     if (r.chep === "chua") o.chepChua++;
+    if (r.clip && r.clip !== "dung") o.clipBad++;
+    if (SACH[r.sach] && !SACH[r.sach][2]) o.sachBad++;
+    if (GHI[r.ghi] && !GHI[r.ghi][2]) o.ghiBad++;
     var s = sessionOf(r.classId, r.date), hs = numOf(r.hwScore), ts = numOf(r.score), mh = numOf(s.maxHw), mt = numOf(s.maxTest);
     if (hs != null) { o.hwRaw.push(r); if (mh) o.hwPct.push(hs / mh); }
     if (ts != null) { o.testRaw.push(r); if (mt) o.testPct.push(ts / mt); }
@@ -1878,10 +1896,15 @@ function historyText(h, o) {
     if (o.hw.khongmang) hw.push("quên mang " + o.hw.khongmang + " buổi");
     var t = hw.join(", ");
     if (o.chepChua) t += T("; có " + o.chepChua + " buổi {con} chưa chép từ vựng");
+    if (o.clipBad) t += T("; có " + o.clipBad + " buổi clip bài tập của {con} nộp muộn, chưa đạt hoặc chưa nộp");
     var ah = avg(o.hwPct);
     if (ah != null) t += ". Điểm bài tập trung bình đạt " + fmtNum(ah * 100) + "%";
     L.push("• Bài tập về nhà: " + t + ".");
   }
+  var sgb = [];
+  if (o.sachBad) sgb.push(o.sachBad + " buổi thiếu sách vở");
+  if (o.ghiBad) sgb.push(o.ghiBad + " buổi ghi chép bài chưa đầy đủ");
+  if (sgb.length) L.push(T("• Sách vở, ghi chép: có " + sgb.join(", ") + "."));
   var at = avg(o.testPct);
   if (at != null) L.push(T("• Kiểm tra trên lớp: điểm trung bình đạt " + fmtNum(at * 100) + "% (" + o.testPct.length + " bài)" + (at >= 0.85 ? ", {con} nắm bài rất tốt." : at >= 0.65 ? ", {con} nắm bài khá tốt." : ", {con} cần ôn bài kỹ hơn.")));
   var strong = [], weak = [];
@@ -1895,6 +1918,9 @@ function historyText(h, o) {
   var ask = [];
   if (o.hw.khonglam + o.hw.chua >= 2) ask.push("làm bài tập đều đặn hơn");
   if (o.chepChua >= 2) ask.push("chép từ vựng sau mỗi buổi");
+  if (o.clipBad >= 2) ask.push("quay và nộp clip bài tập đúng hạn");
+  if (o.sachBad >= 2) ask.push("chuẩn bị đủ sách vở trước buổi học");
+  if (o.ghiBad >= 2) ask.push("ghi chép bài đầy đủ trên lớp");
   if (rep.some(function (k) { return HWERR_GROUPS[1][1][k]; })) ask.push("luyện đọc và viết phiên âm cùng audio bài học");
   if (o.pending.length) ask.push("ôn lại các từ còn yếu");
   if (hv) L.push(ask.length ? "Em nhớ " + joinVi(ask) + " nhé. Cô tin em sẽ tiến bộ nhanh!" : "Em đã học rất chăm chỉ, giữ vững phong độ này nhé!");
@@ -1937,12 +1963,14 @@ function resultRows(c, date) {
   return studentsOf(c.id).map(function (h, i) {
     var r = reviewOf(h.id, date), p = hwPill(r), off = r.dd === "phep" || r.dd === "khong";
     var errs = (Array.isArray(r.hwErr) ? r.hwErr : []).filter(function (k) { return HWERR[k]; }).map(function (k) { return HWERR[k]; });
-    var cmt = errs.length ? "Lỗi: " + errs.join(", ") + "." : "";
+    var sg = off ? [] : [SACH[r.sach], GHI[r.ghi]].filter(Boolean).map(function (x) { return x[3]; });
+    var cmt = sg.length ? sg.join(", ") + "." : "";
+    if (errs.length) cmt += (cmt ? " " : "") + "Lỗi: " + errs.join(", ") + ".";
     if (r.hwNote) cmt += (cmt ? " " : "") + r.hwNote;
     if (r.note) cmt += (cmt ? " " : "") + r.note;
     if (off && !cmt) cmt = r.dd === "phep" ? "Vắng có phép" : "Vắng không phép";
     var still = off ? [] : carryOf(h.id, date, r).still;
-    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), heads: off ? "" : (Array.isArray(r.on) ? r.on : []).map(vocabHead).concat(still.map(function (w) { return vocabHead(w) + " (ôn tiếp)"; })).join("; "), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).concat(still.map(function (w) { return vocabFmt(w) + " (ôn tiếp)"; })).join("; "), cmt: cmt };
+    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), clip: off || !CLIP[r.clip] ? "" : CLIP[r.clip][3], heads: off ? "" : (Array.isArray(r.on) ? r.on : []).map(vocabHead).concat(still.map(function (w) { return vocabHead(w) + " (ôn tiếp)"; })).join("; "), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).concat(still.map(function (w) { return vocabFmt(w) + " (ôn tiếp)"; })).join("; "), cmt: cmt };
   });
 }
 function renderResults(c, date) {
@@ -1956,13 +1984,13 @@ function renderResults(c, date) {
   box.innerHTML = head + '<div class="rs-wrap"><table class="rs fit"><colgroup><col class="c-stt"><col class="c-name"><col class="c-hw"><col class="c-sc"><col class="c-words"><col></colgroup><thead><tr><th>#</th><th>Tên</th><th>BTVN ' + dm + "</th><th>Điểm</th><th>Từ cần ôn & luyện viết</th><th>Nhận xét</th></tr></thead><tbody>" +
     rows.map(function (x) {
       var sc = (x.hwScore !== "" ? '<div class="sc"><b>BTVN</b>' + esc(x.hwScore) + "</div>" : "") + (x.score !== "" ? '<div class="sc"><b>KT</b>' + esc(x.score) + "</div>" : "");
-      return '<tr><td class="n">' + x.stt + '</td><td class="t-name">' + esc(x.name) + '</td><td class="t-hw"><span class="pill ' + x.pill[0] + '">' + esc(x.pill[1]) + "</span>" + (x.chep ? '<div class="sub">' + esc(x.chep.replace(" từ vựng", " từ")) + "</div>" : "") + '</td><td class="t-sc">' + sc + '</td><td class="t-words" title="' + esc(x.words) + '">' + esc(x.heads) + '</td><td class="t-cmt">' + esc(x.cmt) + "</td></tr>";
+      return '<tr><td class="n">' + x.stt + '</td><td class="t-name">' + esc(x.name) + '</td><td class="t-hw"><span class="pill ' + x.pill[0] + '">' + esc(x.pill[1]) + "</span>" + (x.chep ? '<div class="sub">' + esc(x.chep.replace(" từ vựng", " từ")) + "</div>" : "") + (x.clip ? '<div class="sub">' + esc(x.clip) + "</div>" : "") + '</td><td class="t-sc">' + sc + '</td><td class="t-words" title="' + esc(x.words) + '">' + esc(x.heads) + '</td><td class="t-cmt">' + esc(x.cmt) + "</td></tr>";
     }).join("") + "</tbody></table></div>";
 }
 function resultTsv(c, date) {
   var d = toDate(date), cell = function (v) { return String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ").trim(); };
   var out = [["STT", "Tên", "BTVN " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(), "Chép từ vựng", "Điểm BTVN", "Điểm KT", "Từ cần ôn & luyện viết", "Nhận xét"].join("\t")];
-  resultRows(c, date).forEach(function (x) { out.push([x.stt, x.name, x.pill[0] === "none" ? "" : x.pill[1], x.chep, x.hwScore, x.score, x.words, x.cmt].map(cell).join("\t")); });
+  resultRows(c, date).forEach(function (x) { out.push([x.stt, x.name, x.pill[0] === "none" ? "" : x.pill[1], [x.chep, x.clip].filter(Boolean).join("; "), x.hwScore, x.score, x.words, x.cmt].map(cell).join("\t")); });
   return out.join("\n");
 }
 function fillReviewClasses() {
@@ -2055,7 +2083,7 @@ function renderReview() {
   if (!marked.some(function (h) { return h.id === state.rSel; })) state.rSel = marked[0].id;
   $("rStudents").innerHTML = marked.map(function (h) {
     var r = reviewOf(h.id, date), off = r.dd === "phep" || r.dd === "khong";
-    var done = off || r.ov || r.hw || r.chep || (r.at && r.at.length) || (r.kt && Object.keys(r.kt).length) || r.score || r.hwScore;
+    var done = off || r.ov || r.hw || r.chep || r.clip || r.sach || r.ghi || (r.at && r.at.length) || (r.kt && Object.keys(r.kt).length) || r.score || r.hwScore;
     return '<button class="fbtn' + (done ? " done" : "") + (off ? " off" : "") + '" type="button" data-rpick="' + esc(h.id) + '" aria-pressed="' + (h.id === state.rSel) + '">' + esc(titleName(h.name).split(" ").slice(-2).join(" ")) + (off ? " · vắng" : "") + "</button>";
   }).join("");
   var h = marked.filter(function (x) { return x.id === state.rSel; })[0], r = reviewOf(h.id, date), sid = esc(h.id), s = sessionOf(c.id, date);
@@ -2073,9 +2101,11 @@ function renderReview() {
     form = "<h3>Tổng quan buổi học</h3>" + chipRow("data-rov", OVERALL, function (v) { return r.ov === v; }) +
       "<h3>Bài tập về nhà</h3>" + chipRow("data-rhw", HW, function (v) { return r.hw === v; }) +
       '<div class="kt-row" style="margin-top:4px"><span>Chép từ vựng</span><div class="seg sm">' + Object.keys(CHEP).map(function (k) { return '<button type="button" data-rchep="' + k + '" aria-pressed="' + (r.chep === k) + '">' + (k === "co" ? "Đã chép" : "Chưa chép") + "</button>"; }).join("") + "</div></div>" +
+      segRow("Clip bài tập", "data-rclip", CLIP, r.clip) +
       '<label class="num" style="margin-top:6px">Điểm BTVN <input type="number" inputmode="decimal" min="0" data-rf="hwScore" value="' + esc(r.hwScore == null ? "" : r.hwScore) + '">' + (s.maxHw ? "/" + esc(s.maxHw) : "") + "</label>" +
       "<h3>Chất lượng bài tập</h3>" + levelGrid("data-rhwq", HWQ, hq) +
       "<h3>Lỗi trong bài (bấm để chọn)</h3>" + HWERR_GROUPS.map(function (g) { return '<div class="hint" style="margin:4px 0 2px">' + g[0] + "</div>" + chipRow("data-rerr", g[1], function (v) { return errs.indexOf(v) >= 0; }, "err"); }).join("") +
+      "<h3>Sách vở và ghi chép</h3>" + segRow("Sách vở", "data-rsach", SACH, r.sach) + segRow("Ghi chép bài", "data-rghi", GHI, r.ghi) +
       "<h3>Thái độ trên lớp</h3>" + chipRow("data-rat", ATT, function (v) { return at.indexOf(v) >= 0; }) +
       "<h3>Kiến thức trên lớp</h3>" + levelGrid("data-rkt", SKILLS, kt) +
       '<label class="num" style="margin-top:6px">Điểm kiểm tra <input type="number" inputmode="decimal" min="0" data-rf="score" value="' + esc(r.score == null ? "" : r.score) + '">' + (s.maxTest ? "/" + esc(s.maxTest) : "") + "</label>" +
@@ -2096,7 +2126,7 @@ function renderReview() {
 }
 async function saveReview(sid, patch) {
   var date = $("rDate").value, id = date + "_" + sid, cur = reviewOf(sid, date);
-  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "", ov: "", chep: "", hwScore: "", score: "", hwq: {}, hwErr: [], on: [], onDone: [], extra: [], hwNote: "" }, cur, patch);
+  var body = Object.assign({ date: date, classId: $("rClass").value, studentId: sid, dd: "", hw: "", at: [], kt: {}, note: "", ov: "", chep: "", clip: "", sach: "", ghi: "", hwScore: "", score: "", hwq: {}, hwErr: [], on: [], onDone: [], extra: [], hwNote: "" }, cur, patch);
   delete body.id;
   var at = state.reviews.findIndex(function (r) { return r.id === id; });
   if (at >= 0) state.reviews[at] = Object.assign({ id: id }, body); else state.reviews.push(Object.assign({ id: id }, body));
@@ -2159,12 +2189,15 @@ $("reviewList").addEventListener("click", async function (e) {
     if (hs) { hs.audience = au.dataset.raud; renderReview(); try { await db.doc("students/" + sid).update({ audience: au.dataset.raud }); } catch (x) { saveFail(); } }
     return;
   }
-  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt],[data-rov],[data-rchep],[data-rhwq],[data-rerr],[data-ron],[data-rex],[data-rok]");
+  var b = e.target.closest("[data-rhw],[data-rat],[data-rkt],[data-rov],[data-rchep],[data-rclip],[data-rsach],[data-rghi],[data-rhwq],[data-rerr],[data-ron],[data-rex],[data-rok]");
   if (b && sid) {
     var d = b.dataset, patch = {};
     if (d.rhw) patch.hw = r.hw === d.rhw ? "" : d.rhw;
     if (d.rov) patch.ov = r.ov === d.rov ? "" : d.rov;
     if (d.rchep) patch.chep = r.chep === d.rchep ? "" : d.rchep;
+    if (d.rclip) patch.clip = r.clip === d.rclip ? "" : d.rclip;
+    if (d.rsach) patch.sach = r.sach === d.rsach ? "" : d.rsach;
+    if (d.rghi) patch.ghi = r.ghi === d.rghi ? "" : d.rghi;
     if (d.rat) patch.at = toggleIn(r.at, d.rat);
     if (d.rerr) patch.hwErr = toggleIn(r.hwErr, d.rerr);
     if (d.ron) patch.on = toggleIn(r.on, d.ron);
@@ -2244,7 +2277,7 @@ function drawResultImage(c, date) {
   f(14); var vlines = (vocab.length || pat) ? wrapText(g, "Từ vựng và mẫu câu: " + vocab.map(function (v, i) { return (i + 1) + ". " + v; }).join("   ") + (pat ? "\n" + pat : ""), W - 2 * P - 20) : [];
   var body = rows.map(function (x) {
     f(14); var name = wrapText(g, x.name, cols[1][1] - 2 * PAD);
-    f(12.5); var chep = x.chep ? wrapText(g, x.chep.replace(" từ vựng", " từ"), cols[2][1] - 2 * PAD) : [];
+    f(12.5); var chep = [x.chep ? x.chep.replace(" từ vựng", " từ") : "", x.clip].filter(Boolean).reduce(function (a, t) { return a.concat(wrapText(g, t, cols[2][1] - 2 * PAD)); }, []);
     f(14); var words = wrapText(g, x.words, cols[4][1] - 2 * PAD), cmt = wrapText(g, x.cmt, cols[5][1] - 2 * PAD);
     var sc = []; if (x.hwScore !== "") sc.push(["BTVN", x.hwScore]); if (x.score !== "") sc.push(["KT", x.score]);
     var hwH = 24 + (chep.length ? 4 + chep.length * 18 : 0);
@@ -2542,6 +2575,5 @@ $("pushBtn").addEventListener("click", async function () {
   } catch (x) { hint.textContent = "Chưa bật được thông báo. Thử lại sau."; }
 });
 </script>
-<div id="shotView" hidden><div class="shot-bar"><span class="hint" id="shotHint"></span><button class="btn quiet sm" type="button" id="shotClose">Đóng</button></div><div class="shot-body" id="shotBody"></div></div>
 </body>
 </html>
