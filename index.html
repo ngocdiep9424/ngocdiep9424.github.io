@@ -306,6 +306,17 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
   .rs.fit .t-words, .rs.fit .t-cmt { grid-column: 2 / 4; font-size: 12.5px; }
   .rs.fit .t-words:empty, .rs.fit .t-cmt:empty, .rs.fit .t-sc:empty { display: none; }
 }
+#shotView { position: fixed; inset: 0; z-index: 1000; background: var(--solid); color: var(--ink); overflow: auto; }
+#shotView[hidden] { display: none; }
+.shot-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 10px; font-size: 12px; }
+.shot-body { padding: 0 14px 10px; font-size: 15px; }
+.shot-body h2 { font-size: 1.25em; margin: 0 0 4px; }
+.shot-body .rs { font-size: 1em; } .shot-body .pill { font-size: .85em; } .shot-body .rs .sub { font-size: .82em; } .shot-body .rs-vocab { font-size: .9em; padding: 4px 8px; margin-top: 4px; }
+.shot-body .rs th, .shot-body .rs td { padding: .3em .4em; }
+.shot-body h2 { font-family: inherit; }
+.shot-body .rs-vocab { white-space: normal; }
+.shot-body .rs .sc b { font-size: .75em; } .shot-body .pill { padding: .05em .7em; } .shot-body .rs .sub { margin-top: .15em; }
+.shot-bar .hint.warn { color: var(--danger); font-weight: 600; }
 .rs-vocab { margin-top: 8px; font-size: 13px; white-space: pre-wrap; line-height: 1.5; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; }
 .pill { display: inline-block; border-radius: 10px; padding: 1px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .pill.ok { background: #d4ecd2; color: #2f7a35; }
@@ -565,7 +576,7 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
       <div class="actions" style="margin-top:10px"><button class="btn quiet" type="button" id="rCopyAll">Sao chép nhận xét cả lớp</button></div>
       <p class="status" id="rStatus" role="status"></p>
       <div class="att-box" id="resultBox">
-        <div class="head-row"><h3 style="margin:0">Bảng kết quả buổi học</h3><div class="actions"><button class="btn quiet sm" type="button" id="rCopyTable">Sao chép bảng (dán vào Google Sheets)</button></div></div>
+        <div class="head-row"><h3 style="margin:0">Bảng kết quả buổi học</h3><div class="actions"><button class="btn quiet sm" type="button" id="rShot">Toàn màn hình để chụp</button><button class="btn quiet sm" type="button" id="rImg">Tải ảnh bảng</button><button class="btn quiet sm" type="button" id="rImgCopy">Sao chép ảnh</button><button class="btn quiet sm" type="button" id="rCopyTable">Sao chép bảng (dán vào Google Sheets)</button></div></div>
         <div id="resultTable"></div>
       </div>
     </div>
@@ -2196,6 +2207,137 @@ $("rCopyTable").addEventListener("click", function () {
   if (!c || !date) return;
   copyText(resultTsv(c, date), null, "Đã sao chép bảng. Mở Google Sheets, bấm vào ô đầu tiên rồi dán (Ctrl+V).");
 });
+/* Ảnh bảng kết quả: vẽ cả bảng lên canvas nên không bị cắt dù lớp đông. */
+function curResult() {
+  var c = state.classes.filter(function (x) { return x.id === $("rClass").value; })[0], date = $("rDate").value;
+  return c && date ? { c: c, date: date } : null;
+}
+function wrapText(g, text, maxW) {
+  var out = [];
+  String(text == null ? "" : text).split(/\r?\n/).forEach(function (para) {
+    var toks = para.match(/[⺀-鿿豈-﫿＀-￯　-〿]|[^\s⺀-鿿豈-﫿＀-￯　-〿]+|\s+/g) || [""], line = "";
+    toks.forEach(function (t) {
+      if (/^\s+$/.test(t)) { if (line) line += " "; return; }
+      if (g.measureText(line + t).width <= maxW) { line += t; return; }
+      if (line.trim()) out.push(line.trim());
+      line = "";
+      while (g.measureText(t).width > maxW && t.length > 1) {
+        var k = t.length; while (k > 1 && g.measureText(t.slice(0, k)).width > maxW) k--;
+        out.push(t.slice(0, k)); t = t.slice(k);
+      }
+      line = t;
+    });
+    out.push(line.trim());
+  });
+  return out;
+}
+var PILL_COL = { ok: ["#d4ecd2", "#2f7a35"], half: ["#fbeec5", "#8a6510"], no: ["#b3261e", "#ffffff"], off: ["#444444", "#ffffff"], none: ["", "#6b737b"] };
+function drawResultImage(c, date) {
+  var FONT = '"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif';
+  var rows = resultRows(c, date), vocab = vocabOf(c, date), pat = patternOf(c, date), d = toDate(date);
+  var dm = pad(d.getDate()) + "/" + pad(d.getMonth() + 1), W = 1240, P = 24, LH = 21, PAD = 9;
+  var cols = [["#", 34], ["Tên", 180], ["BTVN " + dm, 132], ["Điểm", 92], ["Từ cần ôn & luyện viết", 420]];
+  var used = cols.reduce(function (a, x) { return a + x[1]; }, 0); cols.push(["Nhận xét", W - 2 * P - used]);
+  var g = document.createElement("canvas").getContext("2d");
+  function f(size, bold) { g.font = (bold ? "600 " : "400 ") + size + "px " + FONT; }
+  var title = "Kết quả buổi học · " + c.name + " · " + dm + "/" + d.getFullYear();
+  f(14); var vlines = (vocab.length || pat) ? wrapText(g, "Từ vựng và mẫu câu: " + vocab.map(function (v, i) { return (i + 1) + ". " + v; }).join("   ") + (pat ? "\n" + pat : ""), W - 2 * P - 20) : [];
+  var body = rows.map(function (x) {
+    f(14); var name = wrapText(g, x.name, cols[1][1] - 2 * PAD);
+    f(12.5); var chep = x.chep ? wrapText(g, x.chep.replace(" từ vựng", " từ"), cols[2][1] - 2 * PAD) : [];
+    f(14); var words = wrapText(g, x.words, cols[4][1] - 2 * PAD), cmt = wrapText(g, x.cmt, cols[5][1] - 2 * PAD);
+    var sc = []; if (x.hwScore !== "") sc.push(["BTVN", x.hwScore]); if (x.score !== "") sc.push(["KT", x.score]);
+    var hwH = 24 + (chep.length ? 4 + chep.length * 18 : 0);
+    var h = Math.max(LH, name.length * LH, hwH, sc.length * LH, words.length * LH, cmt.length * LH) + 2 * PAD;
+    return { x: x, name: name, chep: chep, words: words, cmt: cmt, sc: sc, h: h };
+  });
+  var top = P + 30 + (vlines.length ? vlines.length * 20 + 20 : 0) + 6, headH = 36;
+  var H = top + headH + body.reduce(function (a, r) { return a + r.h; }, 0) + P;
+  var scale = Math.min(2, Math.sqrt(16000000 / (W * H)));
+  var cv = document.createElement("canvas"); cv.width = Math.round(W * scale); cv.height = Math.round(H * scale);
+  g = cv.getContext("2d"); g.scale(scale, scale); g.textBaseline = "top";
+  g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#2b3640"; f(20, true); g.fillText(title, P, P);
+  var y = P + 34;
+  if (vlines.length) {
+    g.fillStyle = "#e4ebf3"; g.fillRect(P, y, W - 2 * P, vlines.length * 20 + 14);
+    g.fillStyle = "#2b3640"; f(14); vlines.forEach(function (l, i) { g.fillText(l, P + 10, y + 7 + i * 20); });
+    y += vlines.length * 20 + 20;
+  }
+  y = top;
+  g.fillStyle = "#3f7a2b"; g.fillRect(P, y, W - 2 * P, headH);
+  g.fillStyle = "#ffffff"; f(14, true);
+  var cx = P; cols.forEach(function (col) { g.fillText(col[0], cx + PAD, y + 10); cx += col[1]; });
+  y += headH;
+  body.forEach(function (r, ri) {
+    if (ri % 2) { g.fillStyle = "#f7f4ef"; g.fillRect(P, y, W - 2 * P, r.h); }
+    g.fillStyle = "#e3dcd2"; g.fillRect(P, y, W - 2 * P, 1);
+    var x0 = P, ty = y + PAD + 2;
+    g.fillStyle = "#2b3640"; f(14); g.fillText(String(r.x.stt), x0 + PAD, ty); x0 += cols[0][1];
+    f(14, true); r.name.forEach(function (l, i) { g.fillText(l, x0 + PAD, ty + i * LH); }); x0 += cols[1][1];
+    var pc = PILL_COL[r.x.pill[0]] || PILL_COL.none; f(12.5, true);
+    var pw = g.measureText(r.x.pill[1]).width + 20, px = x0 + PAD, py = y + PAD;
+    g.beginPath(); if (g.roundRect) g.roundRect(px, py, pw, 22, 11); else g.rect(px, py, pw, 22);
+    if (pc[0]) { g.fillStyle = pc[0]; g.fill(); } else { g.strokeStyle = "#cfc6ba"; g.setLineDash([3, 3]); g.stroke(); g.setLineDash([]); }
+    g.fillStyle = pc[1]; g.fillText(r.x.pill[1], px + 10, py + 4);
+    g.fillStyle = "#6b737b"; f(12.5); r.chep.forEach(function (l, i) { g.fillText(l, x0 + PAD, py + 28 + i * 18); }); x0 += cols[2][1];
+    r.sc.forEach(function (s2, i) { g.fillStyle = "#6b737b"; f(11, true); g.fillText(s2[0], x0 + PAD, ty + i * LH + 2); var w = g.measureText(s2[0] + " ").width; g.fillStyle = "#2b3640"; f(14); g.fillText(s2[1], x0 + PAD + w, ty + i * LH); }); x0 += cols[3][1];
+    g.fillStyle = "#2b3640"; f(14); r.words.forEach(function (l, i) { g.fillText(l, x0 + PAD, ty + i * LH); }); x0 += cols[4][1];
+    r.cmt.forEach(function (l, i) { g.fillText(l, x0 + PAD, ty + i * LH); });
+    y += r.h;
+  });
+  g.fillStyle = "#e3dcd2"; g.fillRect(P, y, W - 2 * P, 1);
+  return cv;
+}
+function resultImage(cb) {
+  var cur = curResult(); if (!cur) return;
+  $("rStatus").textContent = "Đang tạo ảnh…";
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
+    var cv = drawResultImage(cur.c, cur.date), d = toDate(cur.date);
+    var name = ("ket-qua-" + cur.c.name + "-" + pad(d.getDate()) + "-" + pad(d.getMonth() + 1)).replace(/[^\w\-À-ỹ]+/g, "-") + ".png";
+    cv.toBlob(function (b) { if (b) cb(b, name); else $("rStatus").textContent = "Không tạo được ảnh, chị thử lại giúp em."; }, "image/png");
+  });
+}
+function saveBlob(b, name) {
+  var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+}
+$("rImg").addEventListener("click", function () {
+  resultImage(function (b, name) {
+    var file = window.File ? new File([b], name, { type: "image/png" }) : null;
+    if (file && navigator.canShare && matchMedia("(pointer: coarse)").matches && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).then(function () { $("rStatus").textContent = "Đã chia sẻ ảnh bảng."; }, function () { $("rStatus").textContent = ""; });
+    } else { saveBlob(b, name); $("rStatus").textContent = "Đã tải ảnh bảng về máy."; }
+  });
+});
+$("rImgCopy").addEventListener("click", function () {
+  if (!navigator.clipboard || !window.ClipboardItem) { $("rStatus").textContent = "Trình duyệt này chưa sao chép được ảnh, chị bấm \"Tải ảnh bảng\" nhé."; return; }
+  resultImage(function (b, name) {
+    navigator.clipboard.write([new ClipboardItem({ "image/png": b })]).then(function () { $("rStatus").textContent = "Đã sao chép ảnh. Mở Zalo rồi dán (Ctrl+V)."; }, function () { saveBlob(b, name); $("rStatus").textContent = "Không sao chép được nên em đã tải ảnh về máy."; });
+  });
+});
+/* Chế độ chụp màn hình: mở riêng bảng, chữ tự thu nhỏ cho vừa một khung. */
+function fitShot() {
+  var v = $("shotView"), b = $("shotBody"), size = 15;
+  b.style.fontSize = size + "px";
+  while (v.scrollHeight > v.clientHeight && size > 9) { size -= 0.5; b.style.fontSize = size + "px"; }
+  var tooLong = v.scrollHeight > v.clientHeight, h = $("shotHint");
+  h.classList.toggle("warn", tooLong);
+  h.textContent = tooLong ? "Lớp đông nên một khung không đủ. Chị bấm \"Tải ảnh bảng\" để có ảnh đủ cả lớp, hoặc chụp 2 lần (cuộn xuống)." : "Chụp màn hình lúc này là đủ cả bảng. Nhấn Esc hoặc nút Đóng để quay lại.";
+}
+$("rShot").addEventListener("click", function () {
+  var cur = curResult(); if (!cur) return;
+  var d = toDate(cur.date);
+  $("shotBody").innerHTML = "<h2>Kết quả buổi học · " + esc(cur.c.name) + " · " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear() + "</h2>" + $("resultTable").innerHTML;
+  var vb = $("shotBody").querySelector(".rs-vocab"); if (vb) vb.innerHTML = vb.innerHTML.replace(/\n/g, " &nbsp; ");
+  $("shotView").hidden = false; document.body.style.overflow = "hidden";
+  fitShot();
+});
+function closeShot() { $("shotView").hidden = true; document.body.style.overflow = ""; }
+$("shotClose").addEventListener("click", closeShot);
+document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("shotView").hidden) closeShot(); });
+window.addEventListener("resize", function () { if (!$("shotView").hidden) fitShot(); });
 
 function resetClassForm() {
   state.editClass = null; $("classForm").reset();
@@ -2400,5 +2542,6 @@ $("pushBtn").addEventListener("click", async function () {
   } catch (x) { hint.textContent = "Chưa bật được thông báo. Thử lại sau."; }
 });
 </script>
+<div id="shotView" hidden><div class="shot-bar"><span class="hint" id="shotHint"></span><button class="btn quiet sm" type="button" id="shotClose">Đóng</button></div><div class="shot-body" id="shotBody"></div></div>
 </body>
 </html>
