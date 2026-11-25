@@ -284,9 +284,28 @@ dialog.plandlg::backdrop { background: rgba(30, 30, 40, .35); }
 .rs th { background: #3f7a2b; color: #fff; font-weight: 600; padding: 6px 8px; text-align: left; white-space: nowrap; }
 .rs td { border-top: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
 .rs td.n { text-align: center; white-space: nowrap; }
-.rs td:nth-child(2) { min-width: 130px; }
-.rs td:nth-child(7), .rs td:nth-child(8) { min-width: 190px; }
-.rs td:nth-child(4) { min-width: 96px; }
+/* Bảng kết quả buổi học: gọn vừa khung, không phải kéo ngang. */
+.rs.fit { table-layout: fixed; }
+.rs.fit th { white-space: normal; padding: 6px; }
+.rs.fit td { padding: 6px; overflow-wrap: anywhere; }
+.rs.fit .c-stt { width: 30px; } .rs.fit .c-hw { width: 118px; } .rs.fit .c-sc { width: 74px; }
+.rs.fit .c-name { width: 20%; } .rs.fit .c-words { width: 30%; }
+.rs .sub { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+.rs .sc { white-space: nowrap; line-height: 1.5; }
+.rs .sc b { font-weight: 600; color: var(--muted); font-size: 11px; margin-right: 3px; }
+@media (max-width: 640px) {
+  .rs.fit, .rs.fit tbody, .rs.fit tr, .rs.fit td { display: block; width: auto; }
+  .rs.fit colgroup, .rs.fit thead { display: none; }
+  .rs.fit tr { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 2px 8px; padding: 8px 2px; border-top: 1px solid var(--line); }
+  .rs.fit td { border: 0; padding: 0; }
+  .rs.fit td.n:first-child { grid-row: span 3; text-align: left; color: var(--muted); }
+  .rs.fit .t-name { font-weight: 600; }
+  .rs.fit .t-hw { grid-column: 3; grid-row: 1; text-align: right; }
+  .rs.fit .t-sc { grid-column: 2 / 4; }
+  .rs.fit .t-sc .sc { display: inline; margin-right: 10px; }
+  .rs.fit .t-words, .rs.fit .t-cmt { grid-column: 2 / 4; font-size: 12.5px; }
+  .rs.fit .t-words:empty, .rs.fit .t-cmt:empty, .rs.fit .t-sc:empty { display: none; }
+}
 .rs-vocab { margin-top: 8px; font-size: 13px; white-space: pre-wrap; line-height: 1.5; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; }
 .pill { display: inline-block; border-radius: 10px; padding: 1px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .pill.ok { background: #d4ecd2; color: #2f7a35; }
@@ -1911,7 +1930,8 @@ function resultRows(c, date) {
     if (r.hwNote) cmt += (cmt ? " " : "") + r.hwNote;
     if (r.note) cmt += (cmt ? " " : "") + r.note;
     if (off && !cmt) cmt = r.dd === "phep" ? "Vắng có phép" : "Vắng không phép";
-    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).concat(carryOf(h.id, date, r).still.map(function (w) { return vocabFmt(w) + " (ôn tiếp)"; })).join("; "), cmt: cmt };
+    var still = off ? [] : carryOf(h.id, date, r).still;
+    return { stt: i + 1, name: titleName(h.name), pill: p, chep: off ? "" : (CHEP[r.chep] || ""), heads: off ? "" : (Array.isArray(r.on) ? r.on : []).map(vocabHead).concat(still.map(function (w) { return vocabHead(w) + " (ôn tiếp)"; })).join("; "), hwScore: off ? "" : scoreText(r.hwScore, s.maxHw), score: off ? "" : scoreText(r.score, s.maxTest), words: off ? "" : wordsOf(r).concat(still.map(function (w) { return vocabFmt(w) + " (ôn tiếp)"; })).join("; "), cmt: cmt };
   });
 }
 function renderResults(c, date) {
@@ -1921,8 +1941,12 @@ function renderResults(c, date) {
   var rows = resultRows(c, date), vocab = vocabOf(c, date), pat = patternOf(c, date), d = toDate(date);
   if (!rows.length) { box.innerHTML = '<p class="empty">Lớp này chưa có học viên.</p>'; return; }
   var head = (vocab.length || pat) ? '<div class="rs-vocab"><b>Từ vựng và mẫu câu buổi ' + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + ":</b>\n" + esc(vocab.map(function (v, i) { return (i + 1) + ". " + v; }).join("\n") + (pat ? "\n" + pat : "")) + "</div>" : "";
-  box.innerHTML = head + '<div class="rs-wrap"><table class="rs"><thead><tr><th>STT</th><th>Tên</th><th>BTVN ' + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "</th><th>Chép từ vựng</th><th>Điểm BTVN</th><th>Điểm KT</th><th>Từ cần ôn & luyện viết</th><th>Nhận xét</th></tr></thead><tbody>" +
-    rows.map(function (x) { return '<tr><td class="n">' + x.stt + "</td><td>" + esc(x.name) + '</td><td><span class="pill ' + x.pill[0] + '">' + esc(x.pill[1]) + "</span></td><td>" + esc(x.chep) + '</td><td class="n">' + esc(x.hwScore) + '</td><td class="n">' + esc(x.score) + "</td><td>" + esc(x.words) + "</td><td>" + esc(x.cmt) + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  var dm = pad(d.getDate()) + "/" + pad(d.getMonth() + 1);
+  box.innerHTML = head + '<div class="rs-wrap"><table class="rs fit"><colgroup><col class="c-stt"><col class="c-name"><col class="c-hw"><col class="c-sc"><col class="c-words"><col></colgroup><thead><tr><th>#</th><th>Tên</th><th>BTVN ' + dm + "</th><th>Điểm</th><th>Từ cần ôn & luyện viết</th><th>Nhận xét</th></tr></thead><tbody>" +
+    rows.map(function (x) {
+      var sc = (x.hwScore !== "" ? '<div class="sc"><b>BTVN</b>' + esc(x.hwScore) + "</div>" : "") + (x.score !== "" ? '<div class="sc"><b>KT</b>' + esc(x.score) + "</div>" : "");
+      return '<tr><td class="n">' + x.stt + '</td><td class="t-name">' + esc(x.name) + '</td><td class="t-hw"><span class="pill ' + x.pill[0] + '">' + esc(x.pill[1]) + "</span>" + (x.chep ? '<div class="sub">' + esc(x.chep.replace(" từ vựng", " từ")) + "</div>" : "") + '</td><td class="t-sc">' + sc + '</td><td class="t-words" title="' + esc(x.words) + '">' + esc(x.heads) + '</td><td class="t-cmt">' + esc(x.cmt) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
 }
 function resultTsv(c, date) {
   var d = toDate(date), cell = function (v) { return String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ").trim(); };
